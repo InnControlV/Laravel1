@@ -19,7 +19,22 @@ class MovieController extends Controller
         $query = DB::table('movies');
 
         if ($request->has('movie_id')) {
-            $movies = $query->where('_id', new \MongoDB\BSON\ObjectId($request->movie_id))->first(); 
+            $movies = $query->where('_id', new \MongoDB\BSON\ObjectId($request->movie_id))->first();
+            if ($movies) {
+                $movies['id'] = (string) $movies['_id'];
+                if (isset($movies['created_at']) && $movies['created_at'] instanceof \MongoDB\BSON\UTCDateTime) {
+                    $movies['created_at'] = $movies['created_at']->toDateTime()->format('Y-m-d H:i:s');
+                } else {
+                    $movies['created_at'] = null; // Or set a default value
+                }
+                
+                if (isset($movies['updated_at']) && $movies['updated_at'] instanceof \MongoDB\BSON\UTCDateTime) {
+                    $movies['updated_at'] = $movies['updated_at']->toDateTime()->format('Y-m-d H:i:s');
+                } else {
+                    $movies['updated_at'] = null; // Or set a default value
+                }
+                unset($movies['_id']);
+            }
             return response()->json(['error'=>false,'data' => $movies,'code'=>200]);
         }
 
@@ -38,11 +53,28 @@ class MovieController extends Controller
             }
         }
     
-        $movie = $query->orderBy('_id')->limit($limit)->get();
+        // $movie = $query->orderBy('_id')->limit($limit)->get();
+        $movie = $query->orderBy('_id')->limit($limit)->get()->map(function ($item) {
+            $item['id'] = (string) $item['_id'];
+            if (isset($item['created_at']) && $item['created_at'] instanceof \MongoDB\BSON\UTCDateTime) {
+                $item['created_at'] = $item['created_at']->toDateTime()->format('Y-m-d H:i:s');
+            } else {
+                $item['created_at'] = null; // Or set a default value
+            }
+            
+            if (isset($item['updated_at']) && $item['updated_at'] instanceof \MongoDB\BSON\UTCDateTime) {
+                $item['updated_at'] = $item['updated_at']->toDateTime()->format('Y-m-d H:i:s');
+            } else {
+                $item['updated_at'] = null; // Or set a default value
+            }
+            unset($item['_id']);
+            return $item;
+        });
+
         $lastItem = $movie->last();
     
-        $nextCursor = $lastItem && isset($lastItem['_id'])
-        ? (string) $lastItem['_id']
+        $nextCursor = $lastItem && isset($lastItem['id'])
+        ? (string) $lastItem['id']
         : null;
     
         return response()->json([
