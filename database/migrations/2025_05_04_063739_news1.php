@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Jenssegers\Mongodb\Schema\Blueprint as MongoBlueprint;
 use Illuminate\Support\Facades\Schema;
 
-class News extends Migration
+class News1 extends Migration
 {
     /**
      * Run the migrations.
@@ -27,9 +27,12 @@ class News extends Migration
             $table->time('time');
             $table->string('refer_from')->nullable(); // Inshorts, Newsify
             $table->string('link')->nullable();
+            $table->string('author')->nullable();
+            $table->string('tags')->nullable();
             $table->unsignedBigInteger('added_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->boolean('favourite')->default(false);
+
             $table->timestamps();
         });
     }

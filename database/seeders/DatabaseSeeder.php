@@ -12,7 +12,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call(MovieSeeder::class);
+        $this->call(NewsTableSeeder::class);
 
         // \App\Models\User::factory(10)->create();
 

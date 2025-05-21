@@ -70,15 +70,30 @@ public function signupOrLogin(Request $request)
     }else if($type == 'old'){
 
         $user = DB::table('users')
-        ->where('email',$request->email)
-        ->where('otp',"")
+        ->select('_id', 'email', 'created_at', 'updated_at','otp','password')
+        ->where('email', $request->email)
         ->first();
+        
         if($user)
         {
             if (!Hash::check($request['password'], $user['password'])) {
                 return response()->json(['error'=>true,'message' => 'Invalid password','code'=>401], 401);
             }
-            return response()->json(['error'=>false,'message' => 'Success','code'=>200]);
+
+            if($user['otp']){
+                $user = DB::table('users')
+                ->where('email', $request->email) // Find user by email
+                ->update([
+                    'otp' => "",
+                    'updated_at' => Carbon::now(),
+                ]);
+            }
+
+            $data = [
+                'id' => (string) $user['_id'],
+                'email' => $user['email'] ?? null,
+            ];
+            return response()->json(['error'=>false,'message' => 'Success','data'=>$data,'code'=>200]);
          }else{
             return response()->json(['error'=>true,'message' => 'Email id not Exist !','code'=>401], 401);
          }
@@ -119,4 +134,70 @@ public function verifyOtp(Request $request)
     return response()->json(['error'=>false,'message' => 'Success','code'=>200]);
 }
 
+
+public function forgotPassword(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'email' => 'required|email',
+    ]);
+
+    // If validation fails, return errors
+    if ($validator->fails()) {
+        return response()->json([
+            'error' => true,
+            'message' => $validator->errors()->first(),
+            'code' => 422
+        ], 422);
+    }
+
+    $user = DB::collection('users')->where('email', $request->email)->first();
+    if (!$user) {
+        return response()->json(['error' => true, 'message' => 'Email not found'], 404);
+    }
+
+    $otp = rand(100000, 999999);
+    $expiresAt = now()->addMinutes(10);
+
+    DB::collection('users')->where('email', $request->email)->update([
+        'otp' => (string)$otp,
+        'otp_expires_at' => Carbon::now()->addMinutes(10)->format('H:i:s'),
+    ]);
+
+    // You can use Mail::to() to send email; for now, just return it
+    return response()->json(['error' => false, 'message' => 'OTP sent', 'otp' => $otp]);
+}
+
+
+public function resetPassword(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
+
+    // If validation fails, return errors
+    if ($validator->fails()) {
+        return response()->json([
+            'error' => true,
+            'message' => $validator->errors()->first(),
+            'code' => 422
+        ], 422);
+    }
+
+
+    $user = DB::collection('users')->where('email', $request->email)->first();
+
+    if (!$user) {
+        return response()->json(['error' => true, 'message' => 'OTP not verified'], 400);
+    }
+
+    DB::collection('users')->where('email', $request->email)->update([
+        'password' => Hash::make($request->password),
+        'otp' => null,
+        'otp_verified' => null,
+        'otp_expires_at' => null
+    ]);
+
+    return response()->json(['error' => false, 'message' => 'Password reset successfully']);
+}
 }

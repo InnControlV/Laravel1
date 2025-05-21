@@ -11,15 +11,19 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('news', function (Blueprint $table) {
-            $table->json('tags')->nullable();
+        Schema::table('jarp_log', function (Blueprint $table) {
+            $table->unsignedInteger('count')->default(0);
         });
     }
-    
+
+
+    /**
+     * Reverse the migrations.
+     */
     public function down()
     {
-        Schema::table('news', function (Blueprint $table) {
-            $table->dropColumn('tags');
+        Schema::table('jarp_log', function (Blueprint $table) {
+            $table->dropColumn('count');
         });
     }
 };

@@ -27,6 +27,7 @@ class NewsController extends Controller
     public function index(Request $request)
     {
         $query = DB::table('news');
+        $user_id = $request->user_id;
 
         if ($request->has('news_id')) {
             $news = $query->where('_id', new \MongoDB\BSON\ObjectId($request->news_id))->first();
@@ -37,7 +38,27 @@ class NewsController extends Controller
                 } else {
                     $news['created_at'] = null; // Or set a default value
                 }
-                
+                $count = DB::table('jarp_log')
+                    ->where('product_id', $news['id'])
+                    ->where('user_id',$user_id)
+                    ->first();
+                    if($count){
+                        $news['read'] = true;
+                    }else{
+                        $news['read'] = false;
+                    }
+
+
+                    $count = DB::table('bookmarks')
+                    ->where('product_id', $news['id'])
+                    ->where('user_id',$user_id)
+                    ->first();
+                    if($count){
+                        $news['bookmarks'] = true;
+                    }else{
+                        $news['bookmarks'] = false;
+                    }
+
                 if (isset($news['updated_at']) && $news['updated_at'] instanceof \MongoDB\BSON\UTCDateTime) {
                     $news['updated_at'] = $news['updated_at']->toDateTime()->format('Y-m-d H:i:s');
                 } else {
@@ -58,44 +79,62 @@ class NewsController extends Controller
 
         $limit = $request->input('limit', 20);
 
-    if ($request->has('last_id')) {
-        try {
-            $lastId = new ObjectId($request->last_id);
-            $query->where('_id', '>', $lastId);
-        } catch (\Exception $e) {
-            return response()->json(['error' => true, 'message' => 'Invalid last_id', 'code' => 400]);
+        if ($request->has('last_id')) {
+            try {
+                $lastId = new ObjectId($request->last_id);
+                $query->where('_id', '>', $lastId);
+            } catch (\Exception $e) {
+                return response()->json(['error' => true, 'message' => 'Invalid last_id', 'code' => 400]);
+            }
         }
-    }
+        $news = $query->orderBy('_id')->limit($limit)->get()->map(function ($item) use ($user_id) {
+            $item['id'] = (string) $item['_id'];
+            if (isset($item['created_at']) && $item['created_at'] instanceof \MongoDB\BSON\UTCDateTime) {
+                $item['created_at'] = $item['created_at']->toDateTime()->format('Y-m-d H:i:s');
+            } else {
+                $item['created_at'] = null; // Or set a default value
+            }
 
-    $news = $query->orderBy('_id')->limit($limit)->get()->map(function ($item) {
-        $item['id'] = (string) $item['_id'];
-        if (isset($item['created_at']) && $item['created_at'] instanceof \MongoDB\BSON\UTCDateTime) {
-            $item['created_at'] = $item['created_at']->toDateTime()->format('Y-m-d H:i:s');
-        } else {
-            $item['created_at'] = null; // Or set a default value
-        }
+            $count = DB::table('jarp_log')
+            ->where('product_id', $item['id'])
+            ->where('user_id',$user_id)
+            ->first();
+
+            if($count){
+                $item['read'] = true;
+            }else{
+                $item['read'] = false;
+            }
+
+            $count = DB::table('bookmarks')
+            ->where('product_id', $item['id'])
+            ->where('user_id',$user_id)
+            ->first();
+            if($count){
+                $item['bookmarks'] = true;
+            }else{
+                $item['bookmarks'] = false;
+            }
+
+            if (isset($item['updated_at']) && $item['updated_at'] instanceof \MongoDB\BSON\UTCDateTime) {
+                $item['updated_at'] = $item['updated_at']->toDateTime()->format('Y-m-d H:i:s');
+            } else {
+                $item['updated_at'] = null; // Or set a default value
+            }
+            unset($item['_id']);
+            return $item;
+        });
+        $lastItem = $news->last();
         
-        if (isset($item['updated_at']) && $item['updated_at'] instanceof \MongoDB\BSON\UTCDateTime) {
-            $item['updated_at'] = $item['updated_at']->toDateTime()->format('Y-m-d H:i:s');
-        } else {
-            $item['updated_at'] = null; // Or set a default value
-        }
-        unset($item['_id']);
-        return $item;
-    });
-
-    $lastItem = $news->last();
-
-    $nextCursor = $lastItem && isset($lastItem['id'])
-    ? (string) $lastItem['id']
-    : null;
-
-    return response()->json([
-        'error' => false,
-        'data' => $news,
-        'next_cursor' => $nextCursor,
-        'code' => 200
-    ]);
+        $nextCursor = ($news->count() >= $limit && $lastItem && isset($lastItem['id']))
+        ? (string) $lastItem['id']
+        : null;
+        return response()->json([
+            'error' => false,
+            'data' => $news,
+            'next_cursor' => $nextCursor,
+            'code' => 200
+        ]);
         
     }
 

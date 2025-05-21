@@ -8,7 +8,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\ShoppingController;
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ContentControllerController;
+use App\Http\Controllers\BookmarkController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -20,14 +22,25 @@ use App\Http\Controllers\DashboardController;
 |
 */
 
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+Route::get('/read', [ContentControllerController::class, 'read']);
+
+
 
 Route::get('/news-list', [NewsController::class, 'index']);
 Route::post('/news-store', [NewsController::class, 'store']);
 
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 
 Route::post('signupOrLogin', [AuthController::class, 'signupOrLogin']);
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+
+
+Route::get('/bookmark', [BookmarkController::class, 'create']);
+// Route::delete('/bookmark', [BookmarkController::class, 'delete']);
+// Route::get('/bookmarks', [BookmarkController::class, 'index']);
 
 
 Route::prefix('movies')->group(function () {
