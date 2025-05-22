@@ -70,14 +70,14 @@ public function signupOrLogin(Request $request)
         return response()->json(['message' => 'OTP sent to your email','otp'=>$otp]);
     }else if($type == 'old'){
 
-        // $user = DB::table('users')
-        // ->select('_id', 'email', 'created_at', 'updated_at','otp','password')
-        // ->where('email', $request->email)
-        // ->first();
+        $user = DB::table('users')
+        ->select('_id', 'email', 'created_at', 'updated_at','otp','password')
+        ->where('email', $request->email)
+        ->first();
 
-        $user = User::all();
+        // $user = User::all();
 
-        return $user;
+        // return $user;
 
         if($user)
         {
@@ -98,11 +98,11 @@ public function signupOrLogin(Request $request)
                 'id' => (string) $user['_id'],
                 'email' => $user['email'] ?? null,
             ];
-            return $user;
-            $token = $user->createToken('auth_token')->plainTextToken;
+            // return $user;
+            // $token = $user->createToken('auth_token')->plainTextToken;
 
-            // Store token in HTTP-only cookie (1 day expiry)
-            Cookie::queue('auth_token', $token, 60 * 24, null, null, false, true);
+            // // Store token in HTTP-only cookie (1 day expiry)
+            // Cookie::queue('auth_token', $token, 60 * 24, null, null, false, true);
     
             return response()->json(['error'=>false,'message' => 'Success','data'=>$data,'code'=>200]);
          }else{
