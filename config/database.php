@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'mysql'),
+'default' => env('DB_CONNECTION', 'mongodb'),
 
     /*
     |--------------------------------------------------------------------------
@@ -63,18 +63,17 @@ return [
             ]) : [],
         ],
 
-        'mongodb' => [
-            'driver'   => 'mongodb',
-            'host'     => env('DB_HOST', '127.0.0.1'),
-            'port'     => env('DB_PORT', 27017),
-            'database' => env('DB_DATABASE', 'your_database_name'),
-            'username' => env('DB_USERNAME', 'your_username'),
-            'password' => env('DB_PASSWORD', 'your_password'),
-            'options'  => [
-                'database' => env('DB_DATABASE', 'admin') // optional
-            ],
-        ],
-
+      'mongodb' => [
+    'driver'   => 'mongodb',
+    'host'     => env('DB_HOST', '127.0.0.1'),
+    'port'     => env('DB_PORT', 27017),
+    'database' => env('DB_DATABASE'),
+    'username' => env('DB_USERNAME'),
+    'password' => env('DB_PASSWORD'),
+    'options'  => [
+        'database' => env('DB_AUTHENTICATION_DATABASE', 'admin'), // optional
+    ]
+],
 
         'pgsql' => [
             'driver' => 'pgsql',
@@ -148,6 +147,7 @@ return [
             'password' => env('REDIS_PASSWORD'),
             'port' => env('REDIS_PORT', '6379'),
             'database' => env('REDIS_DB', '0'),
+            
         ],
 
         'cache' => [

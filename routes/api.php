@@ -23,19 +23,34 @@ use App\Http\Controllers\BookmarkController;
 */
 
 
+Route::get('/test-db', function () {
+    try {
+        DB::connection()->getMongoClient(); // MongoDB client
+        return 'Connected to MongoDB successfully';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
+});
+
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
+
+Route::post('signupOrLogin', [AuthController::class, 'signupOrLogin'])->name('login');
+Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+
 Route::get('/read', [ContentControllerController::class, 'read']);
 
 
 
 Route::get('/news-list', [NewsController::class, 'index']);
 Route::post('/news-store', [NewsController::class, 'store']);
-
-Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
-Route::post('/reset-password', [AuthController::class, 'resetPassword']);
-Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
-
-Route::post('signupOrLogin', [AuthController::class, 'signupOrLogin']);
-Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
 
 
 Route::get('/bookmark', [BookmarkController::class, 'create']);
@@ -59,4 +74,7 @@ Route::prefix('shopping')->group(function () {
     Route::get('/{id}', [ShoppingController::class, 'show']);
     Route::put('/{id}', [ShoppingController::class, 'update']);
     Route::delete('/{id}', [ShoppingController::class, 'destroy']);
+});
+
+
 });
