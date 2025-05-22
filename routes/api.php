@@ -21,6 +21,7 @@ use App\Http\Controllers\BookmarkController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+Route::get('/news-list', [NewsController::class, 'index']);
 
 
 Route::get('/test-db', function () {
@@ -49,7 +50,6 @@ Route::get('/read', [ContentControllerController::class, 'read']);
 
 
 
-Route::get('/news-list', [NewsController::class, 'index']);
 Route::post('/news-store', [NewsController::class, 'store']);
 
 
