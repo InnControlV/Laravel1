@@ -19,7 +19,7 @@ WORKDIR /var/www/html
 COPY . .
 
 # Install PHP dependencies without running scripts (optional)
-RUN composer install --no-dev --optimize-autoloader --no-scripts || (echo "Composer install failed:" && cat /tmp/composer.log || true)
+RUN composer install --no-dev --optimize-autoloader --no-scripts --ignore-platform-req=ext-mongodb
 
 # Set permissions for Laravel storage and cache
 RUN chown -R www-data:www-data /var/www/html \
