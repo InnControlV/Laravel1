@@ -76,8 +76,8 @@ return [
 // ],
 'mongodb' => [
     'driver' => 'mongodb',
-    'dsn' => env('DB_DSN'),
-    'database' => env('DB_DATABASE'),
+    'dsn' =>"mongodb+srv://jarpmedia4:Sp1oCDL2VDxgwH44@jarpcluster.iz2wbio.mongodb.net/jarp?retryWrites=true&w=majority&appName=jarpCluster",
+    'database' => "jarp",
     'options' => [
         'authSource' => env('DB_AUTHENTICATION_DATABASE', 'admin'),
     ],
