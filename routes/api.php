@@ -23,10 +23,10 @@ use App\Http\Controllers\BookmarkController;
 */
 
 
-Route::get('/test-db', function () {
+Route::get('', function () {
     try {
         DB::connection()->getMongoClient(); // MongoDB client
-        return 'Connected to MongoDB successfully';
+        return 'Connected successfully';
     } catch (\Exception $e) {
         return 'Error: ' . $e->getMessage();
     }

@@ -74,11 +74,13 @@ return [
 //         'database' => env('DB_AUTHENTICATION_DATABASE', 'admin'), // optional
 //     ]
 // ],
-
 'mongodb' => [
-    'driver'   => 'mongodb',
-    'dsn'      => env('DB_DSN'),
+    'driver' => 'mongodb',
+    'dsn' => env('DB_DSN'),
     'database' => env('DB_DATABASE'),
+    'options' => [
+        'authSource' => env('DB_AUTHENTICATION_DATABASE', 'admin'),
+    ],
 ],
         'pgsql' => [
             'driver' => 'pgsql',
