@@ -2,10 +2,10 @@ FROM php:8.2-apache
 
 # Install system dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
-    git unzip curl zip libzip-dev libpng-dev libonig-dev libxml2-dev \
+    git unzip curl zip libzip-dev libpng-dev libonig-dev libxml2-dev libssl-dev pkg-config \
     && docker-php-ext-install pdo pdo_mysql mbstring bcmath zip
 
-# Install MongoDB PHP extension
+# Install MongoDB PHP extension with SSL support
 RUN pecl install mongodb && docker-php-ext-enable mongodb
 
 # Enable Apache rewrite module
@@ -16,13 +16,14 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
+# Copy project files
 COPY . .
 
-# Install PHP dependencies without running scripts (optional)
-RUN composer install --no-dev --optimize-autoloader --no-scripts --ignore-platform-req=ext-mongodb
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader --no-scripts
 
 # Set permissions for Laravel storage and cache
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
 
 EXPOSE 80
