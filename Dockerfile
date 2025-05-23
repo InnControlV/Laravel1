@@ -6,8 +6,10 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo pdo_mysql mbstring bcmath zip
 
 # Install MongoDB PHP extension with SSL support
-RUN pecl install mongodb && docker-php-ext-enable mongodb
-
+# Install PHP extensions including mongodb with SSL libs
+RUN apt-get update && apt-get install -y libssl-dev pkg-config \
+    && pecl install mongodb \
+    && docker-php-ext-enable mongodb
 # Enable Apache rewrite module
 RUN a2enmod rewrite
 
@@ -20,7 +22,7 @@ WORKDIR /var/www/html
 COPY . .
 
 # Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-scripts
+RUN COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
 
 # Set permissions for Laravel storage and cache
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
