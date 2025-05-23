@@ -1,15 +1,13 @@
 FROM php:8.2-apache
 
-# Install system dependencies and PHP extensions
+# Install system dependencies and PHP extensions including openssl
 RUN apt-get update && apt-get install -y \
     git unzip curl zip libzip-dev libpng-dev libonig-dev libxml2-dev libssl-dev pkg-config \
-    && docker-php-ext-install pdo pdo_mysql mbstring bcmath zip
+    && docker-php-ext-install pdo pdo_mysql mbstring bcmath zip openssl
 
-# Install MongoDB PHP extension with SSL support
-# Install PHP extensions including mongodb with SSL libs
-RUN apt-get update && apt-get install -y libssl-dev pkg-config \
-    && pecl install mongodb \
-    && docker-php-ext-enable mongodb
+# Install MongoDB PHP extension
+RUN pecl install mongodb && docker-php-ext-enable mongodb
+
 # Enable Apache rewrite module
 RUN a2enmod rewrite
 
@@ -21,7 +19,10 @@ WORKDIR /var/www/html
 # Copy project files
 COPY . .
 
-# Install PHP dependencies
+# Increase composer memory limit
+ENV COMPOSER_MEMORY_LIMIT=-1
+
+# Run composer install with superuser permission allowed
 RUN COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
 
 # Set permissions for Laravel storage and cache
