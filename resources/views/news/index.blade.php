@@ -56,11 +56,10 @@
 
   <div class="main-header">
     <h2>News Table</h2>
-    <button class="add-user-btn">
-      <a href="{{ url('news-create') }}">
-        <i class="fas fa-newspaper"></i> Create News
-      </a>
-    </button>
+    <a href="{{ url('news-create') }}" class="btn btn-primary d-inline-flex align-items-center">
+  <i class="fas fa-newspaper me-2"></i> Create News
+</a>
+
   </div>
 
   <!-- Filters -->
@@ -184,7 +183,7 @@
           <td>${ct}</td>
           <td>${item.category || ''}</td>
           <td>${item.title || ''}</td>
-          <td>${item.image ? `<img src="${item.image}" alt="news image" width="100">` : ''}</td>
+          <td>${item.image ? `<img src="public/news_images${item.image}" alt="news image" width="100">` : ''}</td>
           <td>${item.refer_from || ''}</td>
           <td>${item.language || ''}</td>
           <td>${item.location || ''}</td>

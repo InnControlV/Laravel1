@@ -12,6 +12,11 @@ class NewsController extends Controller
 {
 
 
+    public function check(Request $request){
+        return view('welcome');
+
+    }
+
     public function indexShow(Request $request){
         $perPage = $request->input('paginate', 20);  // You can change the default value to your needs
 
