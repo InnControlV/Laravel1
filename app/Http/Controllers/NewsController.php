@@ -13,7 +13,7 @@ class NewsController extends Controller
 
 
     public function check(Request $request){
-        return view('welcome');
+        return view('news.index', compact('news'));
 
     }
 
