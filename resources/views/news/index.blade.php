@@ -2,42 +2,272 @@
 
 @section('content')
 
-    <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  .loader {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    color: #333;
+    z-index: 9999;
+  }
+  .pagination {
+    margin-bottom: 40px;
+    text-align: center;
+  }
+  .pagination button {
+    padding: 6px 12px;
+    margin: 0 4px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .filter-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .filter-row select, .filter-row input {
+    padding: 5px;
+    font-size: 14px;
+  }
+</style>
 
-        <h2 class="mb-4">News List</h2>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
-      <i class="bi bi-plus-lg me-1"></i> Add News
-    </button>
+<!-- Loader -->
+<div id="loader" class="loader">
+  <i class="fas fa-spinner fa-spin"></i> Loading...
 </div>
-        <hr>
-        
-        <div class="row">
-            @foreach($news as $item)
 
-            
-                <div class="col-md-3 mb-4">
-                    <div class="card">
-                        @if ($item['image'])
-                            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAABJlBMVEX////tGyT8/////v/5///2///rAAD//v7pAADuAAD8/v/9//3tGSL//P/6/f/nAADsAArsABHhAADsHSftERzzABL4/vr++f7uABTtFB/uMTr2/f/vGybqHSHvGCfyGCP0ZGnmIyf88/PvP0jvjYzuoZz1q6z44t/12NfxX1/66en1AADoNT7ud3r2cW7u///yzMvvb3TwTVP3hYryoaT59e30urf3cXbuVV345tzyu7z94ufzur/05erzRFbzjozznaH40tr3xr/1q6bkNUTrU1HkPT3zkJj5fIL3Pk71lpPw08jyiorpc234wcb1gY7rUGHuOzb3WF3lpZzrr6/7w7r2LjXoJzv2qrH8kZHw1Mv4YGjjbWv/oKbzu6v/6/TyZXTrmo9cTUqKAAAXQklEQVR4nO1cDXfaSLKVWt0SUreEZDVCAgmBsAHLYMvYYJtkNg5exxmWeDZ5HpLNzu7M/v8/8boFxrawk2zir9mje87MScJXX1V11a3qkgQhR44cOXLkyJEjR44cOXLkyJEjR44cOXLkyJEjR44cOXLkyJEjR44cOXLkyJEjR44cOXLkyJEjR44cTwhFAOCp1/CgkCSgKRg/9TIeFAoA/9NWBFjY7w3bkZCSxAAoT72i+4amwAPZLFUO14dHWIBl43+OoYRBnYq+T82CNdt8NXoBpade0nUARQGCJGDMYoX0nStzhEMqBgGx/ZB4rvzb8wo6WNGS2AEQYWwg8F1rA4bQ9MQlSsPv+5qHggJeFt039cnoJw0i8H1GrAqVK4bEiuA9r/HHIA0IsUNqqsXG5vqojRcBEbMsJ305AUiCs3Bs6FTIgl/g003gPKt9iP5i+bZds20x8FxzLey/GrYHgmAA4Dj4i0ERYEVHPA1KeGBfMhQDcx+iZ8XwuBBYpllQS65LaegRZk3L7r9qvY4g/LINFQngcY9vORyJlwx94rU17XGW/o2IorjdScbD1vHZ3sFhc2YHnlkoysWi2Tw4ScrcRqtyBUBdgCA+/muxwhlqMV16Ke0LPDY/RwABIE4FRzFnvH+83js4fdPvHY/bUcYokqQg49dNr+R5Xf4R2LGWDN2zZyvfAI8vmlE1uNEAZPGQM4aDwSDOMhRg+2xm0cAmXpPvQ9ApXG5DW+08W4YsKmoS8z3mkyyMsvyfJjUWcYTlknUgKDrbfS/rpklY2KyJ9JR/UkuWDIOK8Txd9NvgKA5Cn6e1tcttZ9M6+2dNOF8ytN6C55UN/zsgNGj9vEbFcOmT7gGPRMKFfPkvZvKVCPxcIVWBBoSkZ5tB6BNyxbDHXwX75lzOiIQq36mLnhqGDqLWqekG4g3YpSl7UYET6zJX1AX8Z2SoCfhvPdUktOHdZCiWJjwEw+mCoV+8eGaS7Q4omPlkmspZ4GTF1WC/a1o2CWq1FRvuc4ag56Z/DYkba38KGxqGrqd/UBygoeQdNbO2W2a/FmcobM8ZBmH/iVf+rWCqG6eFBYTxpCtTu3E7QdGW5ww36TzSWBtPvfQV8EaghBXJwWyzARbocdwZT/bOLmIda1AZ1VXTY1VHeAdDUX0JeIl5WQCbnefmogqAGKAqQAhEcTKcbPdr6trmRSwhDOGLaUOld1G7ZHjOTQ1mc4ZeV39qRlkwRYYHnfPWXr05s1g9odq755GkV6HjjA5lMwyCLxMkhSStPRYRyJqiJ2yz6ZIBsK7hqmEwbwRIwC+S0VnvcGbKaslyg8CS7beJIgCHqe7XvzRM6tuB6H+FYqqzgTNP+KKcVJ+OIKsbcOqNwIna4/3pZpdaha2SSz0mRAJqbXWnCYDIcCCMWn8pWl9zz0uGbfbVYKDOLeprT5kMERzwnbbbrxCTgQZBYDcagc+EluU2zzoGywvIASB5a6sBqdnfxlA+4gwjNX073UWPzVDBkFkN4hd8p/Vtq2BalBmN+LbN/gsJDZn1zNPjtgaR7kCJKbO+SYl/TXl+BWbEhUG74LNkaG+NHr2NCKOLSa8/k4uqyt0xs2zbZ9bbPInZtkR6uQpxsivLIflG6839kqYMO7LNGa5Fj8yPa36+04K0kxaS7OLUWn04YDHHgboOQHu/UrSIbX+JIKGZL/H8AWeYbNn8xcNHjqQS1lgm5gsmPhGvlmYzGiIt1nZfDtK2jC4pgnP+R2h6vmjf6Z3Es6nq1d/cfINXKfNY+isvgJmCe1R+7Hd10JFrq2u1Q1et9c4HcCftU7DkEG9UCtm6KIMaVc3t4U9O86ZA9bpc3IEhzxY1q/3IDHEZrat2ZuHEs9TuWeIgHSpliTeYouHfzVJg2/4XGQb1URkCvS3ftCHtI/4dJyb30uZjH5ICDN9fu+Ik9ANqWs3Ja4n3Mw1HqRps962z1M7qujuIhbYd8r1HSnEqxC/Mm6/TQ4FtPTDhDK0z+MiCRkeJem0xfmCV+httALX0dE8rI+i8/OCagXh3ZiCBpTZeNdgubqSnLZd14BJuPT3vnVo279DsPC5BtsHeLYUJobL8ofUTBEaVFRL8VQA7e7U16gXkTgP6olp51akitvfoKeB6bKeSZXiQhs89xtCrDB777BdGAQ+kDZu4MqkPl7lKdxQDDlp91b2jrBXtWsA/apsJe7uE6q5IewLfb0cZgqLVA/zftymxaY+JhsdlKIz47ghc1T4YRTtIEhZXuAqqnV5g0cZd/EgYlEJWEfqVAWcIe5ZonqRq5cLMeLS1lzJnBTApjaH+yJ1SUA89V6W9JAIAK8pSTw1aP8uUhPYdVS2hpcLpp/8rsTCyyaOLhCaWKI8hZ7JnZkKzNU1tuBnaHh1IDyxK9arx+9WZD6vdY1ltTjvL18sKqEoAJrvqHU0XIjZEn1Bav2BK4FxmdcPJXKOwXKBGLDRjgamjm59Rj9MCuEk8bzOTKjQsSdK9HrPB3yf6tWYsFM6nnw1gLH8XQSDEk6Zp3eGcvi2WaEBbEQRaGXCGxYQvEAtDk8zYF2swUv2MppP3eSzFFRKoFxkXxQYG9zuT0em+EK4YsoBZ3oFlAy2dE+DRAcsN2TUuLcgK4OlvrtkxDI2p1KQgkpqj8zaTlJj0A0uhVWNU8jNxt9DiP6nYol/8KcMGaocv7qv9XXb0KmwVEnTrq4qAmX/C9sQuerdlvobvh9SSZ9OxA1+5ciKkx2VjWaR1Y0fitjiyWEDhp1DTbCgV5Zc8Ag1MkVTg9cIJKFCvy+v3VUxpxk5UV/fRXbFaR3h0aJleeGtsCb1SsXmW7EC2nHeu3OKeJYFkjZQ20npWA3FNvRC4ku+vbODCOScRFUVrIlzP9xiC7RKpDe5pH2pwPJN3IS5n/l1a/K89ncnUJ7Xb2kq8vp+8dqBmAMUAdVc95lMGOkyK/loCePtax+XK1mf+MwNrxQcKY67U4oKtdhz92u9q8A/LDuZx6EdRRlV8bLrdwcorgClPCJzRB9O6LXimq6Wsvl+chmHHgc2gNE29TeuoNddJj7N1qPfVVC6MzZUv2Ur7ox2VVPQrMroiwV3Xtq3g5D5sqMG4rtLwyFh5RTeQkPRc+fbcEJKQVxqsyCjPg6DE3l7x6OZ8P7VN75BfJY0H00MvvWLrq2F4fqSdFNzptQ4Nk0zvSmJYWmdX/0fpSViA57ZZk4fwahMufylqNS0rqGULKFb/svq+0eclg+3oBtCV9BC/fXLo2mKXu53CGFrcxX6KWFoD9VMexGB/tf8mt3m4PC9YY7hgyJakwZ7rld7FEEjZjfNfo1rGZyax5b3rrFllVK4KRtJrqMGtZYMlB9vjKGE+RyoCt1gZ4fZx3y0xBl6NW1RTYktmDgguIm6jXvr9UfbgiTOMeGB6qdrLTaJhHfVk80NHuBeA+FClPm3ejKIKQPF+U3bp7T0J+vdRhAT0kjH0+twnWZH/V14E12r8qIVzkhhDO9Ih2I14/Jjuz31xlaEZYebHn7Z6y12oVNHe1humUe+nzjintFHzGvGNtAOETt0tENGzb/gny/Qh/59oXuwohgH/LXPlieZxRQ780OeSzFbb6WJj+QPSQfnjgPvZJOGX8DgrSrlMUBhDsF8YLn9dw7uNC2AY99T83tgifmCOb7a4MKxnSwBWD9Wo6VbCBmc4P0zZsHgLlzsZZubxA6ad+RtlXjFpIJInkNVY6hG3YavtaEDguzTLsCZALKEzNbpMFZKz95/ovmaieHzYdBtbx0C/YUMsrIYEtyh/PGt3XM7cSlIrrTOB4u7NddC5GdAtuslKXTvVl5xhojlgXEhj5ShyFBh5q0GZ2MxmAL5tXvUvEpZ97nFWwYkqpTrCzlXaMbCEQSNrQlrfbwPggG3qM8/qLBsS1iQ1P/oku/WLGO1SVvUezxmWBmUHTtSEr/2F42CYmKvb2qswhhDUj5fyV0FlqOv3xxCD88rgxpFdhA0JZvu2gaekc03wV6ZKiBtzhqjODM0KW67R0HjIKgoMTikrmPn4iIbjpiRBcFr8dfG9Ojy+pSjxmsxJsfCh82DjlliHsWRcl0afnCqMMtuQBBW2MxS+ST4GLBembWp4yBkO0wLWkJDhOIrW9XjwmTOcAkeLSfF4cWeBzmfVVxn2EZYc4QA4D3UyqmMFO1c+gfXBHoLohXpzHYT25wwxPDZFz09zM+a9XXNeuiuOYujIUbh3B03+ohGNWApPVLZR5/5nONlTgbn3Q0XCCisSVyXVgwDD/X3BgVdjdJcL2Vy8jmNKyCytaRQ+t2wmQLv8KNIGhIgBmUXppYrZVj0z6cHChqCjrhIUuUs7Zfx4vW4dN1g9gF7KWYbv5q87eIcp4krKMGLJkljtyzY1cpLpG8r1OGUMgcQb/qjr0dPL149XZTf7YiZ2NF15vCM1ODRjjNGn7GLoQtVJCrOvV0lDe8y3lRunbHcGSW9WpPwUJ7QLbd5fk1gGals+ee8wskB34G3bUHTXAduh33uXxvcw7HbZ5UdnmahXM/9xFYy6NNXWwpHMS4tUdAn6x9Jl7zScp/x0GmpY8hp0gKSygsDg/S3bkLiTR+M2x2irxwcjepnLbZsnVxfhkzxn2FFZarRZiuCHVNZSjwW1hQJzynDbFQMu4lCUvKvQW/o7jzwgBABoFj4JEliJ67Y6EngG4E13feA1U89MVGJ7FaBw6w6KtdBv1PjcRVAzj9PSHhiYmZWoyWC421CptzI05IuN65dO4N0vDQkP2Ng3UFIovOZ/yoo2W+U6TYpecJ5wtwK4jh6apOYtptDiIp+bpGvp59y9tNTTUSLzGeCmbWUFxOJbA1pK+zeXkDTAqukHPGDT8aln8W4DnmVWVCtwnaZEfFBSQcmc4b5JCN2ef7QjU2qGfwzT6TRW5XPDQnjGAlYYeOHtI1/EtSrrR9ejKPMe6DzkYKKRmEGT6zEnu2V8k1dEOOoLhqIY+BDy9HxsEdtdxNhzeVYfDhBKGXpNxApD2N7/mJrUb9z8tlD0azYJTbp77gBj3gDRWOTFAog+/dEG2nffAPdVMKFp/cFLhYGVDQpuzNXnIGxDnYXOFuYMp65ol9bnH33NZKmgC84bHlC9j9B5cdy07jqZCkhgFrqtGIKljsEKgOB8N5Ct2WdQfjArdszATGvxjprdN166/SP6D1Rl+jHS+XXYZtWeuZ9+EjhG1dCNhXuTYO99YYs2gttnagg1a9MOgo6hXLXxUedsptKwZlveED2MRNWrYJcGcsJ/dGxmbEga87KdztImtpHqmFNaE9VP808rUFFYeHEWIcWmNTsgK+emQUBqpOTWhw6/8besOMw5DSaKYdTql0zP9oMg8L3CCXNU7f7jjWK0Tdsrxjx/D7MMvblOi10WU5cu1KW+L79cfgGvAI9uD5qXsH1a6G68uLqdAjC5DpVkO1zz/OUniTXBxgPcVKKBvZJN50z2s6LN66eLalvu9vIDYObZYTG5+ns02p19iZ9IZXrwGjIZetX2grh93JWDhn9tgrEWlHadB6g09Nhlwf+AlzrgLDsa49Y5c8CsbB7NLy5WdngxJLeBoWAJCfGw7m7dOVFjE0LW5A+f+LACFhATokDRmcCITvqySoMwvOEzYaN0GMHyfWd+NC2JovWvtF+9mz0hct/xriivf+jivjJNi9ibAisGVWjErU1mnzttFzZYsnx/1naEy9NASdIMVE74SfktF4WEwVqzvfPDveAMYptX7GOBu8fmCsMJV6IgUe3QjlJZpetti0fNCLX3T03TI8xMd01keKVgd1wGSNOkhV1YOX006bLYGaw0hPgZedH7ef31/Y5lYJ33MkNmEsy7lP1sxreOU4ZD1RaZrK4yS5T1Nhcs7ydNmU9ysxgo+qtRxvZJUFKbJ3F6Q2x6DqU7WIDKsG5ZlL1oX33ITwdVSwWyOUkGSLjnxyroaCB6zAqsUjDS4j1jDrOVRqAWY+g1HZ70kfTZ5E3UO+dNFvawZuttCK9OXjECONm1ipljNqZxKHXVym8nHQzhAwxk6Gi/FIg1WocSP65caeab43mM5SOShYT/2fm8y0xX4xPCd9LzTK8+doQqvB48j/jNM+HNGSPiWSXa3b040gWAqo7zANWFpnwkrNYzjwVWj8O4kHU4NeE9aDAp2byzgoxxb7a4y+COosGvia5c2Yj5lysKnwnA3LcHo03X9NjrZB5g/IA5hWua3bet9kKCS/rXbnH/LoAL3iWy1XO+INApZA1jdniiBz1e+gfBtrt21z0+C4Y2LdDea4CWfWZUNgDs9Gz5hiQIqGtZzfVRLHz3kwq+FQrvczIdzVteknCuZqodYrV5nAf/5HYLQ1bLfnHQ0jNL9ZcRgFhfMiyD+LgpW9ReVlJsixbC0+l4AEEVVHfQQ45dsq03KnGvoRW+ASTYykoaQgeGDp04LYxtFpFuP1VkRYNdI5ZZmXTSMlbi9wNjpslRNK57Jjcfq6RqxPdpyawdTs4H6d2j6RoedGLPKcOmy43iHvKf0+FGtvtOKhGr9j54q0dHN+Czol113401BK96zAYE7b0Gn4+ev8ejZoH+c78TsQgLH+kOIAUOrXQWy3rFw7QCXmUTPnk/eaMy+eHffX9W6p2udXjhsDJdKWsLhkCI939WLT/VZYQFFXl20OrsIAQcRS8/WpsULaZczCEXNKt9KN5woHcqlhS2L1Lr/bSdZjLOTnIgBlBJvdO2gwZ72SxVep9eKJfveESAZDF6XUx76+CWw8OvggeX0QDApZYEBoSdvYrJzxttYm5ZP+8Nj5AA73lQ7dsAD+fJiZABv8Dw+pNivgnElZutCKHyNTXCyoYmo8fSncUHHM95y6IMGL9HJ6hjfrvKfPZnM42AhnP3LRMr3ETCitrZ3nJsggkGjd+RONqmJmVBRbZPJ+ePfx/MdWAd/LbVSJfrTtPQDeIvF+rX0Qhda3MYoWW9CiQD4c5ZRaaubDYON5IICFB7yCbvV6GgDvHmRjP/nc6a4/bKlMJdFqRblWNWAuvXxlz5nV1qQVVpfb8zEBDQ8FM/SQ+DRblri3JnPhb1t9tOwW7CZmmfrtV615/voOgGcpK6qsqV7dZPz+e5D9JROI8zAZVxeuAyv0HnywRDYlmHnwYAlRfWU5gUgp2pr3b3hm0HgUc60P0WwLdr/G5J1511f5sf462KtuuOOfdOs3HWBhBi5aoMiDb6s7fDGACglQ3nEY88v4Zo99XGMOnEynKpMHt4mHVP0zoYX69RFR1E439Mh/HtE8ZPDf6ENQAU/UohrhweXgeTzP1WBI0bU5/GoBOxZP5wzfgfAjaYOnSMa8/WApu3MuS71bUqU1Y2YOfGaIgiQVY/ONpTB81vBuiuMgxYzeOp8vavWHg+QfL7Yd8yfeZZxe4GK2rBw518PR6wdaNJS/iUl9XodTDUqhoUrjOUBMzLBCm9OePPg7h47b4d37dFlvoubnlSo64DxGpYBwMEFEXBmmbAP8dW7BSuiTZCVXvSBmjlGb9A+r09Hv7r5N+jpP27DufPZwN/jkdYJenxaBCINVb1kYNzyNS04dxStLJNiaLO6Hi3P6Okctp79Z8Wy6wv4ugqtwqLg7TntXlHJq/ma3Zglvqfom8xClIGn4eTetOXi4WtAhUblf5mb32jNRp32keRjlnh+KwY7vO2L7Hk2V4bftvGcjTeq4ZCFCet6T8rrioXLItJQZXB8mbd3QebrPw+rJcanununrMl42+7/U/SAMYAa0zpMIUEnc74ZK9esVSTP+yTofgHvN/bCH8QvS21uR8JP+hYELAt+q/d05lbXDPVnlPWn0+Y3fzlNQv7PzpLjh2QPqdnwDz3P5uzX9DzUa2gjBxsCLr0Y9dc0g0Na8vnfQ2U/7lHkOfIkSNHjhw5cuTIkSNHjhw5cuTIkSNHjhw5cuTIkSNHjhw5cuTIkSNHjhw5cuTIkSNHjhw5cuR4dPw/N4Efn2X9dsoAAAAASUVORK5CYII=" class="card-img-top" alt="{{ $item['title'] }}" style="width: 250px; height: 250px; object-fit: cover;">
-                        @else
-                            <img src="https://via.placeholder.com/250x250" class="card-img-top" alt="Placeholder image" style="width: 250px; height: 250px; object-fit: cover;">
-                        @endif
-                        
-                        <div class="card-body">
-                            <h5 class="card-title">{{ $item['title'] }}</h5>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-
-          
-
-        <div class="d-flex justify-content-center">
-            {{ $news->links('pagination::bootstrap-4') }}
-        </div>
-
-    
+<div class="main">
+  @if(session('success'))
+    <div style="color: green; margin-bottom: 20px;">
+        {{ session('success') }}
     </div>
+  @endif
+
+  <div class="main-header">
+    <h2>News Table</h2>
+    <button class="add-user-btn">
+      <a href="{{ url('news-create') }}">
+        <i class="fas fa-newspaper"></i> Create News
+      </a>
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-row">
+    <div class="row-2">
+    <input type="text" class="form-control"  id="filter-category" placeholder="Category">
+</div>
+<div class="row-2">
+
+    <input type="text" class="form-control"  id="filter-referFrom" placeholder="Refer From">
+    </div>
+
+    <div class="row-2">
+
+    <select class="form-control"  id="filter-location">
+      <option value="">All Locations</option>
+      <option value="delhi">Delhi</option>
+      <option value="mumbai">Mumbai</option>
+      <option value="bangalore">Bangalore</option>
+    </select>
+    </div>
+
+    <div class="row-2">
+
+    <select class="form-control"  id="filter-language">
+      <option value="">All Languages</option>
+      <option value="en">English</option>
+      <option value="hi">Hindi</option>
+      <option value="fr">French</option>
+    </select>
+    </div>
+
+    <button onclick="applyFilters()" class="btn btn-primary me-2">Filter</button>
+    <button onclick="clearFilters()" class="btn btn-outline-secondary">Clear</button>
+    </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Category</th>
+          <th>Title</th>
+          <th>Image</th>
+          <th>Refer From</th>
+          <th>Language</th>
+          <th>Location</th>
+          <th>Link</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="news-body"></tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination">
+    <button id="prev-btn" onclick="goToPreviousPage()" disabled>Previous</button>
+    <span id="page-info">Page 1 of 1</span>
+    <button id="next-btn" onclick="goToNextPage()" disabled>Next</button>
+  </div>
+</div>
+
+<script>
+  const API_BASE_URL = "{{ url('/api') }}";
+  let currentPage = 1;
+  let totalPages = 1;
+  const limit = 20;
+
+  function getFilters() {
+    return {
+      category: document.getElementById('filter-category').value.trim(),
+      location: document.getElementById('filter-location').value,
+      language: document.getElementById('filter-language').value,
+      referFrom: document.getElementById('filter-referFrom').value.trim(),
+    };
+  }
+
+  function buildQueryParams(page = 1) {
+    const filters = getFilters();
+    let params = `?limit=${limit}&page=${page}`;
+
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) {
+        params += `&${key}=${encodeURIComponent(value)}`;
+      }
+    });
+
+    return params;
+  }
+
+  async function fetchNews(page = 1) {
+    const loader = document.getElementById('loader');
+    loader.style.display = 'block';
+
+    try {
+      const url = `${API_BASE_URL}/news-list${buildQueryParams(page)}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Server error");
+
+      const result = await response.json();
+      const data = result.data;
+      totalPages = result.total_pages || 1;
+
+      const tbody = document.getElementById('news-body');
+      tbody.innerHTML = '';
+
+      if (!Array.isArray(data) || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9">No news available</td></tr>';
+        document.getElementById('next-btn').disabled = true;
+        document.getElementById('prev-btn').disabled = true;
+        document.getElementById('page-info').textContent = '';
+        return;
+      }
+
+      let ct = (page - 1) * limit + 1;
+
+      data.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${ct}</td>
+          <td>${item.category || ''}</td>
+          <td>${item.title || ''}</td>
+          <td>${item.image ? `<img src="${item.image}" alt="news image" width="100">` : ''}</td>
+          <td>${item.refer_from || ''}</td>
+          <td>${item.language || ''}</td>
+          <td>${item.location || ''}</td>
+          <td><a href="${item.url || '#'}" target="_blank">Link</a></td>
+          <td>
+            <div class="action-buttons">
+              <a href="news-details/${item.id}" class="btn view">View</a>
+              <a href="news/${item.id}/edit" class="btn edit">Edit</a>
+              <button class="btn delete" data-id="${item.id}">Delete</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+        ct++;
+      });
+
+      currentPage = page;
+      document.getElementById('prev-btn').disabled = (currentPage <= 1);
+      document.getElementById('next-btn').disabled = (currentPage >= totalPages);
+      document.getElementById('page-info').textContent = `Page ${currentPage} of ${totalPages}`;
+
+    } catch (error) {
+      alert("Failed to fetch news.");
+      console.error(error);
+    } finally {
+      loader.style.display = 'none';
+    }
+  }
+
+  function goToNextPage() {
+    if (currentPage < totalPages) {
+      fetchNews(currentPage + 1);
+    }
+  }
+
+  function goToPreviousPage() {
+    if (currentPage > 1) {
+      fetchNews(currentPage - 1);
+    }
+  }
+
+  function applyFilters() {
+    fetchNews(1);
+  }
+
+  function clearFilters() {
+    document.getElementById('filter-category').value = '';
+    document.getElementById('filter-location').value = '';
+    document.getElementById('filter-language').value = '';
+    document.getElementById('filter-referFrom').value = '';
+    fetchNews(1);
+  }
+
+  // Delete handler
+  document.addEventListener('click', async function (e) {
+    if (e.target.classList.contains('delete')) {
+      const id = e.target.getAttribute('data-id');
+
+      if (confirm('Are you sure you want to delete this news item?')) {
+        try {
+          const response = await fetch(`${API_BASE_URL}/news-delete/${id}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            }
+          });
+
+          if (!response.ok) throw new Error('Delete failed');
+
+          alert('News deleted successfully');
+          fetchNews(currentPage);
+        } catch (error) {
+          alert('Failed to delete news');
+          console.error(error);
+        }
+      }
+    }
+  });
+
+  // Load initial news list
+  fetchNews(currentPage);
+</script>
+
+<script src="js/script.js"></script>
 @endsection

@@ -50,8 +50,9 @@ Route::get('/read', [ContentControllerController::class, 'read']);
 
 
 Route::get('/news-list', [NewsController::class, 'index']);
-Route::post('/news-store', [NewsController::class, 'store']);
-
+Route::get('/news-delete/{id}', [NewsController::class, 'destroy']);
+Route::get('/news-create', [NewsController::class, 'create']);
+Route::post('/news-store', [NewsController::class, 'store'])->name('news.store');
 
 Route::get('/bookmark', [BookmarkController::class, 'create']);
 // Route::delete('/bookmark', [BookmarkController::class, 'delete']);

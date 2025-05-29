@@ -24,135 +24,314 @@ class NewsController extends Controller
     }
 
 
+    // public function index(Request $request)
+    // {
+    //     $query = DB::table('news');
+    //     $user_id = $request->user_id;
+
+    //     if ($request->has('news_id')) {
+    //         $news = $query->where('_id', new \MongoDB\BSON\ObjectId($request->news_id))->first();
+    //         if ($news) {
+    //             $news['id'] = (string) $news['_id'];
+    //             if (isset($news['created_at']) && $news['created_at'] instanceof \MongoDB\BSON\UTCDateTime) {
+    //                 $news['created_at'] = $news['created_at']->toDateTime()->format('Y-m-d H:i:s');
+    //             } else {
+    //                 $news['created_at'] = null; // Or set a default value
+    //             }
+    //             $count = DB::table('jarp_log')
+    //                 ->where('product_id', $news['id'])
+    //                 ->where('user_id',$user_id)
+    //                 ->first();
+    //                 if($count){
+    //                     $news['read'] = true;
+    //                 }else{
+    //                     $news['read'] = false;
+    //                 }
+
+
+    //                 $count = DB::table('bookmarks')
+    //                 ->where('product_id', $news['id'])
+    //                 ->where('user_id',$user_id)
+    //                 ->first();
+    //                 if($count){
+    //                     $news['bookmarks'] = true;
+    //                 }else{
+    //                     $news['bookmarks'] = false;
+    //                 }
+
+    //             if (isset($news['updated_at']) && $news['updated_at'] instanceof \MongoDB\BSON\UTCDateTime) {
+    //                 $news['updated_at'] = $news['updated_at']->toDateTime()->format('Y-m-d H:i:s');
+    //             } else {
+    //                 $news['updated_at'] = null; // Or set a default value
+    //             }
+    //             unset($news['_id']);
+    //         }
+    //         return response()->json(['error'=>false,'data' => $news,'code'=>200]);
+    //     }
+
+    //     if ($request->has('language')) {
+    //         $query->where('language', $request->language);
+    //     }
+
+    //     if ($request->has('location')) {
+    //         $query->where('location', $request->location);
+    //     }
+
+    //     $limit = $request->input('limit', 20);
+
+    //     if ($request->has('last_id')) {
+    //         try {
+    //             $lastId = new ObjectId($request->last_id);
+    //             $query->where('_id', '>', $lastId);
+    //         } catch (\Exception $e) {
+    //             return response()->json(['error' => true, 'message' => 'Invalid last_id', 'code' => 400]);
+    //         }
+    //     }
+    //     $news = $query->orderBy('_id')->limit($limit)->get()->map(function ($item) use ($user_id) {
+    //         $item['id'] = (string) $item['_id'];
+    //         if (isset($item['created_at']) && $item['created_at'] instanceof \MongoDB\BSON\UTCDateTime) {
+    //             $item['created_at'] = $item['created_at']->toDateTime()->format('Y-m-d H:i:s');
+    //         } else {
+    //             $item['created_at'] = null; // Or set a default value
+    //         }
+
+    //         $count = DB::table('jarp_log')
+    //         ->where('product_id', $item['id'])
+    //         ->where('user_id',$user_id)
+    //         ->first();
+
+    //         if($count){
+    //             $item['read'] = true;
+    //         }else{
+    //             $item['read'] = false;
+    //         }
+
+    //         $count = DB::table('bookmarks')
+    //         ->where('product_id', $item['id'])
+    //         ->where('user_id',$user_id)
+    //         ->first();
+    //         if($count){
+    //             $item['bookmarks'] = true;
+    //         }else{
+    //             $item['bookmarks'] = false;
+    //         }
+
+    //         if (isset($item['updated_at']) && $item['updated_at'] instanceof \MongoDB\BSON\UTCDateTime) {
+    //             $item['updated_at'] = $item['updated_at']->toDateTime()->format('Y-m-d H:i:s');
+    //         } else {
+    //             $item['updated_at'] = null; // Or set a default value
+    //         }
+    //         unset($item['_id']);
+    //         return $item;
+    //     });
+    //     $lastItem = $news->last();
+        
+    //     $nextCursor = ($news->count() >= $limit && $lastItem && isset($lastItem['id']))
+    //     ? (string) $lastItem['id']
+    //     : null;
+    //     return response()->json([
+    //         'error' => false,
+    //         'data' => $news,
+    //         'next_cursor' => $nextCursor,
+    //         'code' => 200
+    //     ]);
+        
+    // }
+
+
     public function index(Request $request)
     {
-        $query = DB::table('news');
         $user_id = $request->user_id;
-
-        if ($request->has('news_id')) {
-            $news = $query->where('_id', new \MongoDB\BSON\ObjectId($request->news_id))->first();
-            if ($news) {
-                $news['id'] = (string) $news['_id'];
-                if (isset($news['created_at']) && $news['created_at'] instanceof \MongoDB\BSON\UTCDateTime) {
-                    $news['created_at'] = $news['created_at']->toDateTime()->format('Y-m-d H:i:s');
-                } else {
-                    $news['created_at'] = null; // Or set a default value
-                }
-                $count = DB::table('jarp_log')
-                    ->where('product_id', $news['id'])
-                    ->where('user_id',$user_id)
-                    ->first();
-                    if($count){
-                        $news['read'] = true;
-                    }else{
-                        $news['read'] = false;
-                    }
-
-
-                    $count = DB::table('bookmarks')
-                    ->where('product_id', $news['id'])
-                    ->where('user_id',$user_id)
-                    ->first();
-                    if($count){
-                        $news['bookmarks'] = true;
-                    }else{
-                        $news['bookmarks'] = false;
-                    }
-
-                if (isset($news['updated_at']) && $news['updated_at'] instanceof \MongoDB\BSON\UTCDateTime) {
-                    $news['updated_at'] = $news['updated_at']->toDateTime()->format('Y-m-d H:i:s');
-                } else {
-                    $news['updated_at'] = null; // Or set a default value
-                }
-                unset($news['_id']);
-            }
-            return response()->json(['error'=>false,'data' => $news,'code'=>200]);
-        }
-
-        if ($request->has('language')) {
-            $query->where('language', $request->language);
-        }
-
-        if ($request->has('location')) {
-            $query->where('location', $request->location);
-        }
-
         $limit = $request->input('limit', 20);
-
-        if ($request->has('last_id')) {
-            try {
-                $lastId = new ObjectId($request->last_id);
-                $query->where('_id', '>', $lastId);
-            } catch (\Exception $e) {
-                return response()->json(['error' => true, 'message' => 'Invalid last_id', 'code' => 400]);
-            }
+        $page = max(1, (int) $request->input('page', 1)); // Ensure page >= 1
+    
+        $mongo = DB::connection('mongodb')->collection('news');
+    
+        // ✅ Apply filters
+        if ($request->filled('language')) {
+            $mongo->where('language', $request->language);
         }
-        $news = $query->orderBy('_id')->limit($limit)->get()->map(function ($item) use ($user_id) {
+        if ($request->filled('location')) {
+            $mongo->where('location', $request->location);
+        }
+        if ($request->filled('category')) {
+            $mongo->where('category', $request->category);
+        }
+        if ($request->filled('referFrom')) {
+            $mongo->where('refer_from', $request->referFrom);
+        }
+    
+        // 🔢 Count before pagination
+        $totalCount = $mongo->count();
+    
+        // 📄 Pagination
+        $skip = ($page - 1) * $limit;
+    
+        // ⬇️ Fetch news list with pagination & sorting
+        $newsList = $mongo->orderBy('_id', 'desc')->skip($skip)->limit($limit)->get();
+    
+        // 🔗 Join with SQL tables (bookmarks & read)
+        $newsIds = $newsList->map(fn($item) => (string) $item['_id'])->all();
+    
+        $readProducts = DB::table('jarp_log')
+            ->where('user_id', $user_id)
+            ->whereIn('product_id', $newsIds)
+            ->pluck('product_id')
+            ->toArray();
+    
+        $bookmarkedProducts = DB::table('bookmarks')
+            ->where('user_id', $user_id)
+            ->whereIn('product_id', $newsIds)
+            ->pluck('product_id')
+            ->toArray();
+    
+        // 🛠 Format and enrich results
+        $newsData = $newsList->map(function ($item) use ($readProducts, $bookmarkedProducts) {
             $item['id'] = (string) $item['_id'];
-            if (isset($item['created_at']) && $item['created_at'] instanceof \MongoDB\BSON\UTCDateTime) {
-                $item['created_at'] = $item['created_at']->toDateTime()->format('Y-m-d H:i:s');
-            } else {
-                $item['created_at'] = null; // Or set a default value
-            }
-
-            $count = DB::table('jarp_log')
-            ->where('product_id', $item['id'])
-            ->where('user_id',$user_id)
-            ->first();
-
-            if($count){
-                $item['read'] = true;
-            }else{
-                $item['read'] = false;
-            }
-
-            $count = DB::table('bookmarks')
-            ->where('product_id', $item['id'])
-            ->where('user_id',$user_id)
-            ->first();
-            if($count){
-                $item['bookmarks'] = true;
-            }else{
-                $item['bookmarks'] = false;
-            }
-
-            if (isset($item['updated_at']) && $item['updated_at'] instanceof \MongoDB\BSON\UTCDateTime) {
-                $item['updated_at'] = $item['updated_at']->toDateTime()->format('Y-m-d H:i:s');
-            } else {
-                $item['updated_at'] = null; // Or set a default value
-            }
+            $item['created_at'] = $this->formatDate($item['created_at'] ?? null);
+            $item['updated_at'] = $this->formatDate($item['updated_at'] ?? null);
+            $item['read'] = in_array($item['id'], $readProducts);
+            $item['bookmarks'] = in_array($item['id'], $bookmarkedProducts);
             unset($item['_id']);
             return $item;
         });
-        $lastItem = $news->last();
-        
-        $nextCursor = ($news->count() >= $limit && $lastItem && isset($lastItem['id']))
-        ? (string) $lastItem['id']
-        : null;
+    
+        $totalPages = ceil($totalCount / $limit);
+    
         return response()->json([
             'error' => false,
-            'data' => $news,
-            'next_cursor' => $nextCursor,
+            'data' => $newsData,
+            'total_count' => $totalCount,
+            'current_page' => $page,
+            'total_pages' => $totalPages,
             'code' => 200
         ]);
-        
     }
+    
+
+
+/**
+ * Helper function to format MongoDB UTCDateTime to string or return null
+ */
+private function formatDate($date)
+{
+    if ($date instanceof \MongoDB\BSON\UTCDateTime) {
+        return $date->toDateTime()->format('Y-m-d H:i:s');
+    }
+    return null;
+}
+
+
+public function create(Request $request)
+{   
+    return view('news.create');  // resources/views/news/create.blade.php
+}
+
 
     public function store(Request $request)
     {
-        $request->validate([
-            'category' => 'required',
-            'title' => 'required',
-            'short_description' => 'required',
-            'details' => 'required',
-            'language' => 'required',
-            'location' => 'required',
-            'date' => 'required|date',
-            'time' => 'required',
+        $validated = $request->validate([
+            'category' => 'required|string|max:255',
+            'title' => 'required|string|max:255',
+            'language' => 'required|string|max:10',
+            'location' => 'required|string|max:255',
+            'image' => 'nullable|image|max:2048',
+            'date' => 'nullable|date',
+            'time' => 'nullable',
+            'referFrom' => 'nullable|string|max:255',
+            'link' => 'nullable|url|max:255',
+            'favourite' => 'required|in:yes,no',
+            'details' => 'nullable|string',
+            'shortDescription' => 'nullable|string',
         ]);
-
-        $news = News::create($request->all());
-
-        return response()->json(['message' => 'News created successfully', 'data' => $news], 201);
+    
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('news_images', 'public');
+            $validated['image'] = $path;
+        }
+    
+        // Add timestamps manually
+        $validated['created_at'] = now();
+        $validated['updated_at'] = now();
+    
+        // Insert using DB::table
+        $id = DB::table('news')->insertGetId($validated);
+    
+        return redirect()->route('news.index')->with('success', 'News add successfully!');
     }
+
+    public function destroy($id)
+    {
+
+        $news = DB::table('news')->where('_id', $id)->delete(); // ❌
+        
+        // if (!$news) {
+        //     return response()->json(['message' => 'News not found'], 404);
+        // }
+    
+        // $news->delete();
+    
+        return response()->json(['message' => 'News deleted successfully']);
+    }
+    
+    public function edit($id)
+    {
+        $news = (object) DB::table('news')->find($id);
+        if (!$news) {
+            abort(404);
+        }
+
+        return view('news.edit', compact('news'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $validated = $this->validateNews($request);
+
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('news_images', 'public');
+        }
+
+        $validated['updated_at'] = now();
+
+        DB::table('news')->where('_id', $id)->update($validated);
+
+        return redirect()->route('news.edit', $id)->with('success', 'News updated successfully.');
+    }
+
+
+    protected function validateNews(Request $request)
+    {
+        return $request->validate([
+            'category' => 'required|string|max:255',
+            'title' => 'required|string|max:255',
+            'language' => 'required|string',
+            'location' => 'required|string',
+            'image' => 'nullable|image|max:2048',
+            'date' => 'nullable|date',
+            'time' => 'nullable',
+            'referFrom' => 'nullable|string|max:255',
+            'link' => 'nullable|url|max:255',
+            'favourite' => 'required|in:yes,no',
+            'details' => 'nullable|string',
+            'shortDescription' => 'nullable|string',
+        ]);
+    }
+
+    public function show($id)
+{
+    $news = DB::connection('mongodb')->collection('news')->find($id);
+
+    if (!$news) {
+        return response()->json(['error' => true, 'message' => 'News not found'], 404);
+    }
+
+    $news['id'] = (string) $news['_id'];
+    $news['created_at'] = $this->formatDate($news['created_at'] ?? null);
+    $news['updated_at'] = $this->formatDate($news['updated_at'] ?? null);
+    unset($news['_id']);
+
+    return response()->json(['error' => false, 'data' => $news]);
+}
+    
 }

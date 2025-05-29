@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class News extends Model
 {
     use HasFactory;
+    protected $collection = 'news'; // Optional if same name
 
     protected $fillable = [
         'category', 'title', 'image', 'short_description', 'details',
