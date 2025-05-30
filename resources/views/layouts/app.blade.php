@@ -4,124 +4,129 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>@yield('title', 'JARP')</title>
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Bootstrap & Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
   <style>
-   .navbar {
-  background: linear-gradient(135deg, #007bff, #ff69b4);
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 1000; /* Ensure the header stays on top of other content */
-}
+    body {
+      margin: 0;
+      overflow-x: hidden;
+    }
 
-.content {
-  margin-top: 70px; /* Adjust the top margin to make space for the fixed header */
-}
+    .navbar {
+      background-color: black;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+    }
 
-body {
-  margin: 0;
-  overflow-x: hidden;
-}
+    .wrapper {
+      display: flex;
+      padding-top: 56px; /* Height of the fixed header */
+    }
 
-.wrapper {
-  display: flex;
-}
+    .sidebar {
+      width: 220px;
+      height: 100vh;
+      background-color: black;
+      color: white;
+      overflow-y: auto;
+      transition: all 0.3s ease;
+      position: fixed;
+      top: 56px;
+      left: 0;
+      z-index: 999;
+    }
 
-/* Sidebar */
-.sidebar {
-  position: fixed; /* Fix the sidebar to the left */
-  width: 220px;
-  height: 100vh;
-  overflow-y: auto;
-  background: linear-gradient(180deg, #6f42c1, #f06292);
-  color: white;
-  transition: all 0.3s;
-  z-index: 999; /* Keep the sidebar on top of the content */
-}
+    .sidebar.collapsed {
+      width: 0;
+      overflow: hidden;
+    }
 
-.sidebar.collapsed {
-  width: 0;
-  overflow: hidden;
-}
+    .content {
+      margin-left: 220px;
+      padding: 20px;
+      transition: margin-left 0.3s ease;
+      width: 100%;
+    }
 
-.content {
-  flex-grow: 1;
-  padding: 20px;
-  margin-left: 220px; /* Add space for the sidebar */
-  transition: margin-left 0.3s ease;
-}
+    .content.full-width {
+      margin-left: 40px;
+    }
 
-/* Navbar Branding and Links */
-.navbar-brand {
-  font-weight: bold;
-  font-size: 1.4rem;
-  color: white;
-}
+    .navbar-brand {
+      font-weight: bold;
+      font-size: 1.4rem;
+      color: white;
+    }
 
-.nav-link {
-  color: white !important;
-}
+    .nav-link,
+    .toggle-btn {
+      color: white !important;
+    }
 
-.toggle-btn {
-  border: none;
-  background: none;
-  color: white;
-  font-size: 1.3rem;
-}
+    .btn-primary {
+      background: linear-gradient(135deg, #007bff, #ff69b4);
+      border: none;
+    }
 
-.btn-primary {
-  background: linear-gradient(135deg, #007bff, #ff69b4);
-  border: none;
-}
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0056b3, #e83e8c);
+    }
 
-.btn-primary:hover {
-  background: linear-gradient(135deg, #0056b3, #e83e8c);
-}
+    /* Responsive sidebar collapse */
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
 
-/* Sidebar collapsing behavior for smaller screens */
-@media (max-width: 768px) {
-  .sidebar {
-    position: fixed;
-    z-index: 1000;
-    height: 100%;
-    transform: translateX(-100%); /* Hide sidebar on mobile */
-  }
+      .sidebar.collapsed {
+        transform: translateX(0);
+      }
 
-  .sidebar.collapsed {
-    transform: translateX(0); /* Slide in the sidebar */
-  }
-
-  .content {
-    margin-left: 0; /* Remove margin for mobile view */
-  }
-}
+      .content {
+        margin-left: 0;
+      }
+    }
   </style>
 </head>
 <body>
 
   <!-- Header -->
-     @include('partials.header')
+  @include('partials.header')
 
   <div class="wrapper">
     <!-- Sidebar -->
-           @include('partials.sidebar')
-
+    @include('partials.sidebar')
 
     <!-- Main Content -->
-    <div class="content">
+    <div class="content" id="main-content">
       @yield('content')
     </div>
   </div>
-    @include('partials.footer')
 
-  <!-- Scripts -->
+  @include('partials.footer')
+
+  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Sidebar Toggle Script -->
   <script>
-    document.getElementById('sidebarToggle').addEventListener('click', function () {
-      document.getElementById('sidebar').classList.toggle('collapsed');
-    });
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    const content = document.getElementById('main-content');
+
+    if (sidebarToggle) {
+      sidebarToggle.addEventListener('click', function () {
+        sidebar.classList.toggle('collapsed');
+        content.classList.toggle('full-width');
+      });
+    }
   </script>
 </body>
 </html>

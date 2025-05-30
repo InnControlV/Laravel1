@@ -47,12 +47,13 @@ Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
 
 Route::get('/read', [ContentControllerController::class, 'read']);
 
-
-
+Route::post('/news-store', [NewsController::class, 'apinewsStore']);
+Route::get('/news-list-mobile', [NewsController::class, 'index1']);
 Route::get('/news-list', [NewsController::class, 'index']);
 Route::get('/news-delete/{id}', [NewsController::class, 'destroy']);
-Route::get('/news-create', [NewsController::class, 'create']);
-Route::post('/news-store', [NewsController::class, 'store'])->name('news.store');
+Route::post('/news-update/{id}', [NewsController::class, 'apinewsUpdate']);
+
+
 
 Route::get('/bookmark', [BookmarkController::class, 'create']);
 // Route::delete('/bookmark', [BookmarkController::class, 'delete']);

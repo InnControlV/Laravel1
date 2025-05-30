@@ -238,6 +238,7 @@ public function create(Request $request)
         $validated = $request->validate([
             'category' => 'required|string|max:255',
             'title' => 'required|string|max:255',
+            'tag' => 'required|string|max:255',
             'language' => 'required|string|max:10',
             'location' => 'required|string|max:255',
             'image' => 'nullable|image|max:2048',
@@ -338,5 +339,197 @@ public function create(Request $request)
 
     return response()->json(['error' => false, 'data' => $news]);
 }
+
+
+public function index1(Request $request)
+{
+    $user_id = $request->user_id;
+    $limit = $request->input('limit', 20);
+    $page = max(1, (int) $request->input('page', 1)); // Ensure page >= 1
+
+    $mongo = DB::connection('mongodb')->collection('news');
+
+    // ✅ Apply filters
+    if ($request->filled('language')) {
+        $mongo->where('language', $request->language);
+    }
+    if ($request->filled('location')) {
+        $mongo->where('location', $request->location);
+    }
+    if ($request->filled('category')) {
+        $mongo->where('category', $request->category);
+    }
+    if ($request->filled('referFrom')) {
+        $mongo->where('refer_from', $request->referFrom);
+    }
+
+    // 🔢 Count before pagination
+    $totalCount = $mongo->count();
+
+    // 📄 Pagination
+    $skip = ($page - 1) * $limit;
+
+    // ⬇️ Fetch news list with pagination & sorting
+    $newsList = $mongo->orderBy('_id', 'desc')->skip($skip)->limit($limit)->get();
+
+    // 🔗 Join with SQL tables (bookmarks & read)
+    $newsIds = $newsList->map(fn($item) => (string) $item['_id'])->all();
+
+    $readProducts = DB::table('jarp_log')
+        ->where('user_id', $user_id)
+        ->whereIn('product_id', $newsIds)
+        ->pluck('product_id')
+        ->toArray();
+
+    $bookmarkedProducts = DB::table('bookmarks')
+        ->where('user_id', $user_id)
+        ->whereIn('product_id', $newsIds)
+        ->pluck('product_id')
+        ->toArray();
+
+    // 🛠 Format and enrich results
+    $newsData = $newsList->map(function ($item) use ($readProducts, $bookmarkedProducts) {
+        $id = (string) $item['_id'];
+
+        return [
+            'category'       => $item['category'] ?? '',
+            'title'          => $item['title'] ?? '',
+            'image'          => $item['image'] ?? '',
+            'short_description'    => $item['short_description'] ?? '',
+            'details'    => $item['details'] ?? '',
+            'language'       => $item['language'] ?? '',
+            'location'       => $item['location'] ?? '',
+            'created_at'     => $this->formatDate($item['created_at'] ?? null),
+            'tag'            => $item['tag'] ?? '',
+            'id'             => $id,
+            'read'           => in_array($id, $readProducts),
+            'bookmark'       => in_array($id, $bookmarkedProducts),
+            'metadata'       => [
+                'author'    => $item['added_by'] ?? '',
+                'source'    => $item['refer_from'] ?? '',
+                'sourceURL' => $item['link'] ?? '',
+                'createdAt' => $item['created_at'] ?? '',
+            ],
+        ];
+    });
+
+    $totalPages = ceil($totalCount / $limit);
+
+    return response()->json([
+        'error' => false,
+        'data' => $newsData,
+        'total_count' => $totalCount,
+        'current_page' => $page,
+        'total_pages' => $totalPages,
+        'code' => 200
+    ]);
+}
+
+
+public function apinewsStore(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'category' => 'required|string|max:255',
+        'title' => 'required|string|max:255',
+        'tag' => 'required|string|max:255',
+        'language' => 'required|string|max:10',
+        'location' => 'required|string|max:255',
+        'image' => 'nullable|image|max:2048',
+        'date' => 'nullable|date',
+        'time' => 'nullable',
+        'referFrom' => 'nullable|string|max:255',
+        'link' => 'nullable|url|max:255',
+        'favourite' => 'required|in:yes,no',
+        'details' => 'nullable|string',
+        'shortDescription' => 'nullable|string',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'error' => true,
+            'message' => 'Validation failed.',
+            'errors' => $validator->errors()
+        ], 422);
+    }
+
+    $validated = $validator->validated();
+
+    if ($request->hasFile('image')) {
+        $path = $request->file('image')->store('news_images', 'public');
+        $validated['image'] = Storage::url($path);
+    }
+
+    $validated['created_at'] = now();
+    $validated['updated_at'] = now();
+
+    $id = DB::table('news')->insertGetId($validated);
+
+    return response()->json([
+        'error' => false,
+        'message' => 'News added successfully.',
+        'news_id' => $id,
+        'data' => $validated
+    ], 201);
+}
+
+
+public function apinewsUpdate(Request $request, $id)
+{
+    // Validate input
+    $validator = Validator::make($request->all(), [
+        'category' => 'sometimes|required|string|max:255',
+        'title' => 'sometimes|required|string|max:255',
+        'tag' => 'sometimes|required|string|max:255',
+        'language' => 'sometimes|required|string|max:10',
+        'location' => 'sometimes|required|string|max:255',
+        'image' => 'nullable|image|max:2048',
+        'date' => 'nullable|date',
+        'time' => 'nullable',
+        'referFrom' => 'nullable|string|max:255',
+        'link' => 'nullable|url|max:255',
+        'favourite' => 'sometimes|required|in:yes,no',
+        'details' => 'nullable|string',
+        'shortDescription' => 'nullable|string',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'error' => true,
+            'message' => 'Validation failed.',
+            'errors' => $validator->errors()
+        ], 422);
+    }
+
+    $validated = $validator->validated();
+    // Handle image upload
+    if ($request->hasFile('image')) {
+        $path = $request->file('image')->store('news_images', 'public');
+        $validated['image'] = Storage::url($path);
+    }
+
+    $validated['updated_at'] = now();
+
+    // Update record
+
+    $updated = DB::connection('mongodb')
+    ->collection('news')
+    ->where('_id', new ObjectId($id))
+    ->update($validated);
     
+    if ($updated == 1) {
+        return response()->json([
+            'error' => false,
+            'message' => 'News updated successfully.',
+            'news_id' => $id,
+            'data' => $validated
+        ]);
+    } else {
+        return response()->json([
+            'error' => true,
+            'message' => 'News not found or nothing to update.'
+        ], 404);
+    }
+}
+
+
 }

@@ -16,14 +16,24 @@
     z-index: 9999;
   }
   .pagination {
-    margin-bottom: 40px;
-    text-align: center;
+    margin: 20px 0 40px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
   }
   .pagination button {
     padding: 6px 12px;
-    margin: 0 4px;
     font-size: 16px;
     cursor: pointer;
+    border: 1px solid #ddd;
+    background: #fff;
+  }
+  .pagination button.active {
+    background-color: #007bff;
+    color: #fff;
+    font-weight: bold;
   }
   .pagination button:disabled {
     opacity: 0.5;
@@ -57,9 +67,8 @@
   <div class="main-header">
     <h2>News Table</h2>
     <a href="{{ url('news-create') }}" class="btn btn-primary d-inline-flex align-items-center">
-  <i class="fas fa-newspaper me-2"></i> Create News
-</a>
-
+      <i class="fas fa-newspaper me-2"></i> Create News
+    </a>
   </div>
 
   <!-- Filters -->
@@ -103,6 +112,7 @@
           <th>ID</th>
           <th>Category</th>
           <th>Title</th>
+          <th>Tag</th>
           <th>Image</th>
           <th>Refer From</th>
           <th>Language</th>
@@ -115,12 +125,8 @@
     </table>
   </div>
 
-  <!-- Pagination -->
-  <div class="pagination">
-    <button id="prev-btn" onclick="goToPreviousPage()" disabled>Previous</button>
-    <span id="page-info">Page 1 of 1</span>
-    <button id="next-btn" onclick="goToNextPage()" disabled>Next</button>
-  </div>
+  <!-- New Numerical Pagination -->
+  <div class="pagination" id="pagination-container"></div>
 </div>
 
 <script>
@@ -141,13 +147,11 @@
   function buildQueryParams(page = 1) {
     const filters = getFilters();
     let params = `?limit=${limit}&page=${page}`;
-
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
         params += `&${key}=${encodeURIComponent(value)}`;
       }
     });
-
     return params;
   }
 
@@ -168,10 +172,8 @@
       tbody.innerHTML = '';
 
       if (!Array.isArray(data) || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9">No news available</td></tr>';
-        document.getElementById('next-btn').disabled = true;
-        document.getElementById('prev-btn').disabled = true;
-        document.getElementById('page-info').textContent = '';
+        tbody.innerHTML = '<tr><td colspan="10">No news available</td></tr>';
+        document.getElementById('pagination-container').innerHTML = '';
         return;
       }
 
@@ -183,6 +185,7 @@
           <td>${ct}</td>
           <td>${item.category || ''}</td>
           <td>${item.title || ''}</td>
+          <td>${item.tag || ''}</td>
           <td>${item.image ? `<img src="public/news_images${item.image}" alt="news image" width="100">` : ''}</td>
           <td>${item.refer_from || ''}</td>
           <td>${item.language || ''}</td>
@@ -201,9 +204,7 @@
       });
 
       currentPage = page;
-      document.getElementById('prev-btn').disabled = (currentPage <= 1);
-      document.getElementById('next-btn').disabled = (currentPage >= totalPages);
-      document.getElementById('page-info').textContent = `Page ${currentPage} of ${totalPages}`;
+      renderPagination();
 
     } catch (error) {
       alert("Failed to fetch news.");
@@ -213,17 +214,45 @@
     }
   }
 
-  function goToNextPage() {
-    if (currentPage < totalPages) {
-      fetchNews(currentPage + 1);
-    }
+  function renderPagination() {
+  const pagination = document.getElementById('pagination-container');
+  pagination.innerHTML = '';
+
+  const maxVisiblePages = 4;
+  let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+  let endPage = startPage + maxVisiblePages - 1;
+
+  if (endPage > totalPages) {
+    endPage = totalPages;
+    startPage = Math.max(1, endPage - maxVisiblePages + 1);
   }
 
-  function goToPreviousPage() {
-    if (currentPage > 1) {
-      fetchNews(currentPage - 1);
-    }
+  // Prev button
+  const prevBtn = document.createElement('button');
+  prevBtn.textContent = 'Prev';
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.onclick = () => fetchNews(currentPage - 1);
+  pagination.appendChild(prevBtn);
+
+  // Page buttons
+  for (let i = startPage; i <= endPage; i++) {
+    const btn = document.createElement('button');
+    btn.textContent = i;
+    btn.classList.toggle('active', i === currentPage);
+    btn.onclick = () => {
+      if (i !== currentPage) fetchNews(i);
+    };
+    pagination.appendChild(btn);
   }
+
+  // Next button
+  const nextBtn = document.createElement('button');
+  nextBtn.textContent = 'Next';
+  nextBtn.disabled = currentPage === totalPages;
+  nextBtn.onclick = () => fetchNews(currentPage + 1);
+  pagination.appendChild(nextBtn);
+}
+
 
   function applyFilters() {
     fetchNews(1);

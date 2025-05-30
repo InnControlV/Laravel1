@@ -1,6 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
+<link rel="stylesheet" href="css/style.css">
+
 <main style="flex: 1; padding: 0; overflow-y: auto; background-color: #f5f6fa;">
   <div style="background: white; padding: 30px; width: 100%; height: 100%;">
     <h2 style="margin-top: 0; color: #333;">Create News</h2>
@@ -35,6 +37,12 @@
         <label for="title">Title</label>
         <input type="text" id="title" name="title" class="form-control" value="{{ old('title', 'Sample News Title') }}">
       </div>
+
+      <div style="flex: 1 1 30%;">
+        <label for="tag">Tag</label>
+        <input type="text" id="tag" name="tag" class="form-control" value="{{ old('tag', 'Sample News tag') }}">
+      </div>
+
 
       <div style="flex: 1 1 30%;">
         <label for="language">Language</label>
