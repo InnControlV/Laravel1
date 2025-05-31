@@ -1,27 +1,22 @@
 FROM php:8.2-apache
 
-# Set environment variables
+# Environment settings
 ENV COMPOSER_MEMORY_LIMIT=-1 \
     DEBIAN_FRONTEND=noninteractive
 
-# Install system dependencies and tools needed for PECL and mongodb extension
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git unzip curl zip libzip-dev libpng-dev libonig-dev libxml2-dev \
-    libssl-dev pkg-config autoconf g++ make
+    libssl-dev pkg-config && \
+    docker-php-ext-install pdo pdo_mysql mbstring bcmath zip
 
-# Install PHP extensions including mongodb
-RUN pecl install mongodb && docker-php-ext-enable mongodb && php -m
-
-RUN php -m | grep mongodb
-RUN php -r "var_dump(class_exists('MongoDB\\Driver\\ReadPreference'));"
-
-RUN service apache2 restart
-RUN apachectl restart
+# Install MongoDB PHP extension
+RUN pecl install mongodb && echo "extension=mongodb.so" > /usr/local/etc/php/conf.d/mongodb.ini
 
 # Enable Apache rewrite module
 RUN a2enmod rewrite
 
-# Copy Composer binary
+# Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Set working directory
@@ -31,14 +26,10 @@ WORKDIR /var/www/html
 COPY . .
 
 # Install Laravel dependencies
-RUN COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --no-scripts --ignore-platform-reqs || (echo "Composer install failed" && cat /tmp/composer.log || true)
+RUN composer install --no-dev --optimize-autoloader
 
-# Set permissions
+# Set correct permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
     chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Expose port 80
 EXPOSE 80
-
-# Show enabled PHP extensions for debugging
-RUN php -m
