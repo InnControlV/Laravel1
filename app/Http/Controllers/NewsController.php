@@ -146,6 +146,7 @@ class NewsController extends Controller
 
     public function index(Request $request)
     {
+    
         $user_id = $request->user_id;
         $limit = $request->input('limit', 20);
         $page = max(1, (int) $request->input('page', 1)); // Ensure page >= 1

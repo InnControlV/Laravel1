@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\Model;
 
 
 class Bookmark extends Model
@@ -15,6 +15,13 @@ class Bookmark extends Model
         'product_type',
         'product_id',
     ];
+
+    protected $connection = 'mongodb';  // Make sure your DB connection is mongodb
+    protected $collection = 'bookmarks'; // Mongo collection name
+    
+    protected $primaryKey = '_id';  // MongoDB uses _id as primary key
+    
+    public $timestamps = true;  // if your collection has created_at, updated_at
 
     // Define the relationship with the User model
     public function user()
