@@ -6,47 +6,58 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use App\Models\Bookmark;
-
-
 
 class BookmarkController extends Controller
 {
     // Create a new bookmark
     public function create(Request $request)
-{
-    try {
-        // Validation
-        $validator = Validator::make($request->all(), [
-            'product_type' => 'required|string|in:news,movie,shopping',
-            'product_id' => 'required',
-            'user_id' => 'required',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'error' => true,
-                'message' => $validator->errors()->first(),
-                'code' => 422
-            ], 422);
-        }
-
+    {
         try {
-            // Check if bookmark exists
-            $bookmark = Bookmark::where('product_id', $request->product_id)
-                ->where('product_type', $request->product_type)
-                ->where('user_id', $request->user_id)
-                ->first();
-
+            // ✅ Validation
+            $validator = Validator::make($request->all(), [
+                'product_type' => 'required|string|in:news,movie,shopping',
+                'product_id' => 'required',
+                'user_id' => 'required',
+            ]);
+    
+            if ($validator->fails()) {
+                return response()->json([
+                    'error' => true,
+                    'message' => $validator->errors()->first(),
+                    'code' => 422
+                ], 422);
+            }
+    
+            $data = [
+                'user_id' => $request->user_id,
+                'product_type' => $request->product_type,
+                'product_id' => $request->product_id,
+                'created_at' => now(),
+                'updated_at' => now()
+            ];
+    
+            try {
+                $query = DB::table('bookmarks');
+                $bookmark = $query->where('product_id', $request->product_id)
+                    ->where('product_type', $request->product_type)
+                    ->where('user_id', $request->user_id)
+                    ->first();
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => true,
+                    'message' => 'Failed to fetch bookmark: ' . $e->getMessage(),
+                    'code' => 500
+                ], 500);
+            }
+    
             if ($bookmark) {
-                try {
-                    $bookmark->delete();
 
-                    return response()->json([
-                        'error' => false,
-                        'message' => 'Bookmark deleted successfully.',
-                        'code' => 200
-                    ], 200);
+                try {
+                    $id = (string) $bookmark['_id'];  // If _id is an object, cast to string properly
+                    $data = DB::table('bookmarks')
+                        ->where('_id', $id)
+                        ->delete();
+
                 } catch (\Exception $e) {
                     return response()->json([
                         'error' => true,
@@ -54,45 +65,38 @@ class BookmarkController extends Controller
                         'code' => 500
                     ], 500);
                 }
-            } else {
-                try {
-                    Bookmark::create([
-                        'user_id' => $request->user_id,
-                        'product_type' => $request->product_type,
-                        'product_id' => $request->product_id,
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ]);
-
-                    return response()->json([
-                        'error' => false,
-                        'message' => 'Bookmark added successfully.',
-                        'code' => 201
-                    ], 201);
-                } catch (\Exception $e) {
-                    return response()->json([
-                        'error' => true,
-                        'message' => 'Failed to add bookmark: ' . $e->getMessage(),
-                        'code' => 500
-                    ], 500);
-                }
+    
+                return response()->json([
+                    'error' => false,
+                    'message' => 'Bookmark deleted successfully.',
+                    'code' => 200
+                ], 200);
             }
+    
+            try {
+                DB::table('bookmarks')->insert($data);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => true,
+                    'message' => 'Failed to add bookmark: ' . $e->getMessage(),
+                    'code' => 500
+                ], 500);
+            }
+    
+            return response()->json([
+                'error' => false,
+                'message' => 'Bookmark added successfully.',
+                'code' => 201
+            ], 201);
+    
         } catch (\Exception $e) {
             return response()->json([
                 'error' => true,
-                'message' => 'Database query failed: ' . $e->getMessage(),
+                'message' => 'Unexpected error: ' . $e->getMessage(),
                 'code' => 500
             ], 500);
         }
-    } catch (\Exception $e) {
-        return response()->json([
-            'error' => true,
-            'message' => 'Unexpected error: ' . $e->getMessage(),
-            'code' => 500
-        ], 500);
     }
-}
-
     
     
 
