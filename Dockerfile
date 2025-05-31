@@ -4,19 +4,18 @@ FROM php:8.2-apache
 ENV COMPOSER_MEMORY_LIMIT=-1 \
     DEBIAN_FRONTEND=noninteractive
 
-# Install system dependencies
+# Install system dependencies and tools needed for PECL and mongodb extension
 RUN apt-get update && apt-get install -y \
     git unzip curl zip libzip-dev libpng-dev libonig-dev libxml2-dev \
-    libssl-dev pkg-config && \
-    docker-php-ext-install pdo pdo_mysql mbstring bcmath zip
+    libssl-dev pkg-config autoconf g++ make
 
-# Install MongoDB PHP extension
+# Install PHP extensions including mongodb
 RUN pecl install mongodb && docker-php-ext-enable mongodb
 
 # Enable Apache rewrite module
 RUN a2enmod rewrite
 
-# Install Composer
+# Copy Composer binary
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Set working directory
@@ -32,4 +31,8 @@ RUN COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader -
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
     chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Expose port 80
 EXPOSE 80
+
+# Show enabled PHP extensions for debugging
+RUN php -m
