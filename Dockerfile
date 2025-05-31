@@ -11,7 +11,8 @@ RUN apt-get update && apt-get install -y \
 
 # ✅ Install latest stable MongoDB extension (official)
 RUN pecl install mongodb && docker-php-ext-enable mongodb
-
+# Manually ensure it's loaded
+RUN echo "extension=mongodb.so" > /usr/local/etc/php/conf.d/mongodb.ini
 # Enable Apache rewrite
 RUN a2enmod rewrite
 
