@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     libssl-dev pkg-config autoconf g++ make
 
 # Install PHP extensions including mongodb
-RUN pecl install mongodb && docker-php-ext-enable mongodb
+RUN pecl install mongodb && docker-php-ext-enable mongodb && php -m
 
 # Enable Apache rewrite module
 RUN a2enmod rewrite
