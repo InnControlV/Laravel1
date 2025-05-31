@@ -11,7 +11,13 @@ RUN apt-get update && apt-get install -y \
 
 # Install PHP extensions including mongodb
 RUN pecl install mongodb && docker-php-ext-enable mongodb && php -m
+
+RUN php -m | grep mongodb
+RUN php -r "var_dump(class_exists('MongoDB\\Driver\\ReadPreference'));"
+
 RUN service apache2 restart
+RUN apachectl restart
+
 # Enable Apache rewrite module
 RUN a2enmod rewrite
 
