@@ -53,10 +53,10 @@ class BookmarkController extends Controller
             if ($bookmark) {
 
                 try {
-                    $id = (string) $bookmark['_id'];  // If _id is an object, cast to string properly
-                    $data = DB::table('bookmarks')
-                        ->where('_id', $id)
-                        ->delete();
+                    // $id = (string) $bookmark['_id'];  // If _id is an object, cast to string properly
+                    // $data = DB::table('bookmarks')
+                    //     ->where('_id', $id)
+                    //     ->delete();
 
                 } catch (\Exception $e) {
                     return response()->json([
