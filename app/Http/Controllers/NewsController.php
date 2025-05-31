@@ -419,7 +419,6 @@ public function create(Request $request)
     
         // 📥 Fetch results sorted by newest first
         $newsList = $mongo->orderBy('_id', 'desc')->limit($limit)->get();
-    
         $newsIds = $newsList->map(fn($item) => (string) $item['_id'])->all();
     
         $readProducts = DB::table('jarp_log')
@@ -441,8 +440,9 @@ public function create(Request $request)
             return [
                 'category'       => $item['category'] ?? '',
                 'title'          => $item['title'] ?? '',
-                'image'          => $item['image'] ?? '',
-                'short_description' => $item['short_description'] ?? '',
+                'image' => isset($item['image']) 
+                ? "https://laravel1-kcmv.onrender.com/storage/app/public/" . $item['image'] : '',
+                    'short_description' => $item['short_description'] ?? '',
                 'details'        => $item['details'] ?? '',
                 'language'       => $item['language'] ?? '',
                 'location'       => $item['location'] ?? '',
