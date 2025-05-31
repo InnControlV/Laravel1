@@ -1,39 +1,50 @@
 @extends('layouts.app')
 
 @section('content')
+
 <head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      background: #f8f9fa;
+    }
+    .news-image {
+  width: 100%;
+  height: 500px;
+  object-fit: contain;
+  background-color: #f0f0f0; /* optional background */
+  border-radius: 8px;
+}
+    .favourite-badge {
+      font-size: 1.2rem;
+      color: #dc3545;
+    }
+    .loader {
+      display: none;
+      text-align: center;
+      padding: 2rem 0;
+    }
+    .loader i {
+      font-size: 2rem;
+    }
+  </style>
+
 </head>
-<style>
-  body {
-    background: #f8f9fa;
-  }
-  .news-image {
-    max-height: 400px;
-    object-fit: cover;
-    width: 100%;
-    border-radius: 8px;
-  }
-  .favourite-badge {
-    font-size: 1.2rem;
-    color: #dc3545;
-  }
-</style>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <div class="container py-5">
-  <div id="loader" class="text-center my-4" style="display: none;">
-    <i class="fas fa-spinner fa-spin fa-2x"></i> Loading...
+  <div id="loader" class="loader">
+    <i class="fas fa-spinner fa-spin"></i> Loading...
   </div>
 
-  <div id="news-card" class="card shadow-sm" style="display: none;">
-    <div class="row g-0">
+  <div style="width:100%;" id="news-card" class="card shadow-sm" style="display: none;">
+    <div class="row">
       <div class="col-md-5">
-        <img id="news-image" class="news-image" />
+        <img id="news-image" class="news-image" alt="News Image" />
       </div>
       <div class="col-md-7">
         <div class="card-body">
           <h1 id="news-title" class="card-title mb-3">
-            <span class="favourite-badge" title="Favourite" aria-label="Favourite">&#10084;</span>
+            <span class="favourite-badge" title="Favourite">&#10084;</span>
           </h1>
           <p class="text-muted mb-1"><strong>Category:</strong> <span id="news-category"></span></p>
           <p class="text-muted mb-1"><strong>Date:</strong> <span id="news-date"></span></p>
@@ -83,10 +94,7 @@
       document.getElementById('news-refer-from').textContent = item.refer_from || '';
       document.getElementById('news-url').href = item.url || '#';
 
-      const imageUrl = item.image
-        ? `{{ asset('storage/news_images') }}/${item.image}`
-        : 'https://via.placeholder.com/600x400';
-      document.getElementById('news-image').src = imageUrl;
+      document.getElementById('news-image').src = item.image || 'https://via.placeholder.com/600x400';
 
       newsCard.style.display = 'block';
     } catch (err) {

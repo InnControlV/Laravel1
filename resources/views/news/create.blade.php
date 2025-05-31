@@ -30,25 +30,25 @@
 
       <div style="flex: 1 1 30%;">
         <label for="category">Category</label>
-        <input type="text" id="category" name="category" class="form-control" value="{{ old('category', 'Tech') }}">
+        <input type="text" id="category" name="category" class="form-control" >
       </div>
 
       <div style="flex: 1 1 30%;">
         <label for="title">Title</label>
-        <input type="text" id="title" name="title" class="form-control" value="{{ old('title', 'Sample News Title') }}">
+        <input type="text" id="title" name="title" class="form-control" >
       </div>
 
       <div style="flex: 1 1 30%;">
         <label for="tag">Tag</label>
-        <input type="text" id="tag" name="tag" class="form-control" value="{{ old('tag', 'Sample News tag') }}">
+        <input type="text" id="tag" name="tag" class="form-control" >
       </div>
 
 
       <div style="flex: 1 1 30%;">
         <label for="language">Language</label>
         <select id="language" name="language" class="form-control">
-          <option value="en" {{ old('language', 'en') == 'en' ? 'selected' : '' }}>English</option>
-          <option value="hi" {{ old('language') == 'hi' ? 'selected' : '' }}>Hindi</option>
+          <option value="en" {{ old('language', 'English') == 'en' ? 'selected' : '' }}>English</option>
+          <option value="hi" {{ old('language') == 'Hindi' ? 'selected' : '' }}>Hindi</option>
           <option value="fr" {{ old('language') == 'fr' ? 'selected' : '' }}>French</option>
         </select>
       </div>
@@ -79,12 +79,12 @@
 
       <div style="flex: 1 1 30%;">
         <label for="referFrom">Refer From</label>
-        <input type="text" id="referFrom" name="referFrom" class="form-control" value="{{ old('referFrom', 'example.com') }}">
+        <input type="text" id="refer_from" name="refer_from" class="form-control" >
       </div>
 
       <div style="flex: 1 1 30%;">
         <label for="link">Link</label>
-        <input type="url" id="link" name="link" class="form-control" value="{{ old('link', 'https://example.com') }}">
+        <input type="url" id="link" name="link" class="form-control" >
       </div>
 
       <div style="flex: 1 1 48%;">
@@ -97,12 +97,12 @@
 
       <div style="flex: 1 1 48%;">
         <label for="details">Details</label>
-        <textarea id="details" name="details" class="form-control" style="height: 40px; resize: none;">{{ old('details', 'This is detailed content for testing.') }}</textarea>
+        <textarea id="details" name="details" class="form-control" style="height: 40px; resize: none;"></textarea>
       </div>
 
       <div style="flex: 1 1 100%;">
         <label for="shortDescription">Short Description</label>
-        <textarea id="shortDescription" name="shortDescription" rows="3" class="form-control">{{ old('shortDescription', 'Short description goes here.') }}</textarea>
+        <textarea id="shortDescription" name="shortDescription" rows="3" class="form-control"></textarea>
       </div>
 
       <div style="flex: 1 1 100%; text-align: right; margin-top: 20px;">

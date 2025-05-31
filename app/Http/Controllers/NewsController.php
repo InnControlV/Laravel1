@@ -151,7 +151,7 @@ class NewsController extends Controller
         $page = max(1, (int) $request->input('page', 1)); // Ensure page >= 1
     
         $mongo = DB::connection('mongodb')->collection('news');
-    
+        
         // ✅ Apply filters
         if ($request->filled('language')) {
             $mongo->where('language', $request->language);
@@ -165,7 +165,24 @@ class NewsController extends Controller
         if ($request->filled('referFrom')) {
             $mongo->where('refer_from', $request->referFrom);
         }
-    
+
+        if ($request->filled('Keyword')) {
+            $keyword = $request->Keyword;
+            $mongo->where(function ($query) use ($keyword) {
+                $regex = new \MongoDB\BSON\Regex($keyword, 'i'); // case-insensitive
+                $query->orWhere('title', 'regex', $regex)
+                    ->orWhere('short_description', 'regex', $regex)
+                    ->orWhere('details', 'regex', $regex)
+                    ->orWhere('category', 'regex', $regex)
+                    ->orWhere('location', 'regex', $regex)
+                    ->orWhere('refer_from', 'regex', $regex)
+                    ->orWhere('language', 'regex', $regex)
+                    ->orWhere('added_by', 'regex', $regex)
+                    ->orWhere('updated_by', 'regex', $regex);
+            });
+
+        }
+        
         // 🔢 Count before pagination
         $totalCount = $mongo->count();
     
@@ -302,7 +319,7 @@ public function create(Request $request)
 
         DB::table('news')->where('_id', $id)->update($validated);
 
-        return redirect()->route('news.edit', $id)->with('success', 'News updated successfully.');
+        return redirect('news')->with('success', 'News updated successfully.');
     }
 
 
@@ -334,22 +351,23 @@ public function create(Request $request)
                 'message' => 'News not found'
             ], 404);
         }
-
         return response()->json([
             'success' => true,
             'data' => [
                 'id' => $news->_id,
                 'title' => $news->title ?? '',
                 'category' => $news->category ?? '',
-                'description' => $news->description ?? '',
-                'image' => $news->image ? asset('storage/news_images/' . $news->image) : null,
-                'date' => optional($news->created_at)->format('Y-m-d'),
-                'time' => optional($news->created_at)->format('H:i:s'),
+                'description' => $news->shortDescription ?? '',
+                'image' => $news->image ? asset('storage/' . $news->image) : null,
+                'date' => $news->date ?? null,
+                'time' => $news->time ?? null,
+                'tag' => $news->tag ?? '',
                 'location' => $news->location ?? '',
                 'language' => $news->language ?? '',
-                'refer_from' => $news->refer_from ?? '',
-                'url' => $news->url ?? '',
+                'refer_from' => $news->referFrom ?? '',
+                'url' => $news->link ?? '',
                 'favourite' => $news->favourite ?? false,
+                'details' => $news->details ?? false,
             ]
         ]);
     }
@@ -374,6 +392,23 @@ public function create(Request $request)
         }
         if ($request->filled('referFrom')) {
             $mongo->where('refer_from', $request->referFrom);
+        }
+
+        if ($request->filled('keyword')) {
+            $keyword = $request->keyword;
+            $mongo->where(function ($query) use ($keyword) {
+                $regex = new \MongoDB\BSON\Regex($keyword, 'i'); // case-insensitive
+                $query->orWhere('title', 'regex', $regex)
+                    ->orWhere('short_description', 'regex', $regex)
+                    ->orWhere('details', 'regex', $regex)
+                    ->orWhere('category', 'regex', $regex)
+                    ->orWhere('location', 'regex', $regex)
+                    ->orWhere('refer_from', 'regex', $regex)
+                    ->orWhere('language', 'regex', $regex)
+                    ->orWhere('added_by', 'regex', $regex)
+                    ->orWhere('updated_by', 'regex', $regex);
+            });
+            
         }
     
         // ▶️ Apply cursor if present
@@ -419,7 +454,6 @@ public function create(Request $request)
                     'author'    => $item['added_by'] ?? '',
                     'source'    => $item['refer_from'] ?? '',
                     'sourceURL' => $item['link'] ?? '',
-                    'createdAt' => $item['created_at'] ?? '',
                 ],
             ];
         });
@@ -451,7 +485,7 @@ public function apinewsStore(Request $request)
         'image' => 'nullable|image|max:2048',
         'date' => 'nullable|date',
         'time' => 'nullable',
-        'referFrom' => 'nullable|string|max:255',
+        'refer_from' => 'nullable|string|max:255',
         'link' => 'nullable|url|max:255',
         'favourite' => 'required|in:yes,no',
         'details' => 'nullable|string',

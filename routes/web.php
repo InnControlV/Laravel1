@@ -25,7 +25,7 @@ Route::get('/check', [NewsController::class, 'check'])->name('news.check');
 Route::get('/news', [NewsController::class, 'indexShow'])->name('news.index');
 Route::get('/news-create', [NewsController::class, 'create'])->name('news.create');
 Route::post('/news-store', [NewsController::class, 'store'])->name('news.store');
-Route::get('/news/{id}/edit', [NewsController::class, 'edit'])->name('news.edit');
+Route::get('/news-edit/{id}', [NewsController::class, 'edit'])->name('news.edit');
 Route::post('/news/{id}/update', [NewsController::class, 'update'])->name('news.update');
 
 // News Details View Page (for front-end viewing)

@@ -2,7 +2,7 @@
 
 @section('content')
 
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="{{ ('css/style.css') }}">
 <style>
   .loader {
     display: none;
@@ -72,6 +72,10 @@
 
   <!-- Filters -->
   <div class="filter-row">
+
+  <div class="row-2">
+    <input type="text" class="form-control"  id="filter-Keyword" placeholder="Keyword...">
+</div>
     <div class="row-2">
     <input type="text" class="form-control"  id="filter-category" placeholder="Category">
 </div>
@@ -138,11 +142,12 @@
     return {
       category: document.getElementById('filter-category').value.trim(),
       location: document.getElementById('filter-location').value,
+      Keyword: document.getElementById('filter-Keyword').value,
       language: document.getElementById('filter-language').value,
       referFrom: document.getElementById('filter-referFrom').value.trim(),
     };
   }
-
+  
   function buildQueryParams(page = 1) {
     const filters = getFilters();
     let params = `?limit=${limit}&page=${page}`;
@@ -193,7 +198,7 @@
           <td>
             <div class="action-buttons">
               <a href="news-details/${item.id}" class="btn view">View</a>
-              <a href="news/${item.id}/edit" class="btn edit">Edit</a>
+              <a href="news-edit/${item.id}" class="btn edit">Edit</a>
               <button class="btn delete" data-id="${item.id}">Delete</button>
             </div>
           </td>

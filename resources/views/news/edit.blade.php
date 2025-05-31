@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+
 <main style="flex: 1; padding: 0; overflow-y: auto; background-color: #f5f6fa;">
   <div style="background: white; padding: 30px; width: 100%; height: 100%;">
     <h2 style="margin-top: 0; color: #333;">Edit News</h2>
@@ -43,8 +44,8 @@
       <div style="flex: 1 1 30%;">
         <label for="image">Image</label>
         <input type="file" id="image" name="image" accept="image/*" class="form-control">
-        @if ($news->image)
-          <div style="margin-top: 10px;">
+        @if (!empty($news->image))
+        <div style="margin-top: 10px;">
             <img src="{{ asset('storage/' . $news->image) }}" alt="Current Image" width="100">
           </div>
         @endif
@@ -61,8 +62,8 @@
       </div>
 
       <div style="flex: 1 1 30%;">
-        <label for="refer_from">Refer From</label>
-        <input type="text" id="refer_from" name="refer_from" class="form-control" value="{{ old('refer_from', $news->refer_from) }}">
+        <label for="referFrom">Refer From</label>
+        <input type="text" id="referFrom" name="referFrom" class="form-control" value="{{ old('referFrom', $news->referFrom) }}">
       </div>
 
       <div style="flex: 1 1 30%;">
@@ -84,8 +85,8 @@
       </div>
 
       <div style="flex: 1 1 100%;">
-        <label for="short_description">Short Description</label>
-        <textarea id="short_description" name="short_description" rows="3" class="form-control">{{ old('short_description', $news->short_description) }}</textarea>
+        <label for="shortDescription">Short Description</label>
+        <textarea id="shortDescription" name="shortDescription" rows="3" class="form-control">{{ old('shortDescription', $news->shortDescription) }}</textarea>
       </div>
 
       <div style="flex: 1 1 100%; text-align: right; margin-top: 20px;">
