@@ -28,11 +28,6 @@ COPY . .
 # Install Laravel dependencies
 RUN COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --no-scripts --ignore-platform-reqs || (echo "Composer install failed" && cat /tmp/composer.log || true)
 
-
-RUN pecl install mongodb \
-    && docker-php-ext-enable mongodb
-
-    
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
     chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
