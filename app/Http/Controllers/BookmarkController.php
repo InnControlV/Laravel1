@@ -36,16 +36,17 @@ class BookmarkController extends Controller
                 'updated_at' => now()
             ];
     
-            $query = DB::table('bookmarks');
+            $query =  DB::table('bookmarks');
             $bookmark = $query->where('product_id', $request->product_id)
                 ->where('product_type', $request->product_type)
                 ->where('user_id', $request->user_id)
                 ->first();
-    
+
+                $id = (string) $bookmark['_id'];
             if ($bookmark) {
                 // Note: Replace _id with your actual primary key if it's not MongoDB
                 DB::table('bookmarks')
-                    ->where('_id', $bookmark->id) // or '_id' if using Mongo
+                    ->where('_id', $id) // or '_id' if using Mongo
                     ->delete();
     
                 return response()->json([

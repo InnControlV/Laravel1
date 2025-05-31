@@ -44,38 +44,57 @@ class ContentControllerController extends Controller
        
     }
 
-    public function logHit($type, $productIds,$user_id)
+    public function logHit($type, $productIds, $user_id)
     {
-
-
- 
-
-        $query = DB::table('jarp_log');
-        $read = $query->where('product_id',$productIds)
-        ->where('product_type',$type)
-        ->where('user_id',$user_id)
-        ->first();
-
-        if($read){
-            $read = DB::table('jarp_log')->where('_id', new \MongoDB\BSON\ObjectId($read['_id']))->delete();
-
-            return "Read remove";
-
-        }else{
-            $data =  DB::table('jarp_log')->insert([
-                'product_type' => $type,
-                'product_id' => $productIds,
-                'count' => 1,
-                'user_id'=>$user_id,
-                'ip_address' => request()->ip(),
-                'user_agent' => request()->header('User-Agent'),
-                'hit_at' => now(),
-            ]);
-            return "Read Add";
-
+        try {
+            $query = DB::table('jarp_log');
+    
+            // Check if already read
+            $read = $query->where('product_id', $productIds)
+                ->where('product_type', $type)
+                ->where('user_id', $user_id)
+                ->first();
+    
+            if ($read) {
+                // Delete the record using Mongo ObjectId
+                DB::table('jarp_log')->where('_id', new \MongoDB\BSON\ObjectId($read->_id))->delete();
+    
+                return response()->json([
+                    'error' => false,
+                    'message' => 'Read removed',
+                ], 200);
+            } else {
+                // Insert new read log
+                DB::table('jarp_log')->insert([
+                    'product_type' => $type,
+                    'product_id' => $productIds,
+                    'count' => 1,
+                    'user_id' => $user_id,
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->header('User-Agent'),
+                    'hit_at' => now(),
+                ]);
+    
+                return response()->json([
+                    'error' => false,
+                    'message' => 'Read added',
+                ], 201);
+            }
+        } catch (\MongoDB\Driver\Exception\Exception $e) {
+            // MongoDB specific exception
+            return response()->json([
+                'error' => true,
+                'message' => 'MongoDB error: ' . $e->getMessage(),
+            ], 500);
+        } catch (\Exception $e) {
+            // General PHP exception
+            return response()->json([
+                'error' => true,
+                'message' => 'Error: ' . $e->getMessage(),
+            ], 500);
         }
-
     }
+    
 
     private function convertTimestamps(&$item)
     {
