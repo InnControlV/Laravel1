@@ -51,14 +51,12 @@ class BookmarkController extends Controller
             }
     
             if ($bookmark) {
+
                 try {
-
-                    // $query = DB::table('bookmarks');
-                    // $bookmark = $query->where('product_id', $request->product_id)
-                    //     ->where('product_type', $request->product_type)
-                    //     ->where('user_id', $request->user_id)
-                    //     ->delete();
-
+                    $id = (string) $bookmark['_id'];  // If _id is an object, cast to string properly
+                    $data = DB::table('bookmarks')
+                        ->where('_id', $id)
+                        ->delete();
 
                 } catch (\Exception $e) {
                     return response()->json([
