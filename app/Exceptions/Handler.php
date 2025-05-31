@@ -22,6 +22,19 @@ class Handler extends ExceptionHandler
     /**
      * Register the exception handling callbacks for the application.
      */
+    public function render($request, Throwable $exception)
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'error' => true,
+                'message' => $exception->getMessage(),
+                'code' => method_exists($exception, 'getStatusCode') ? $exception->getStatusCode() : 500
+            ], method_exists($exception, 'getStatusCode') ? $exception->getStatusCode() : 500);
+        }
+
+        return parent::render($request, $exception);
+    }
+
     public function register(): void
     {
 
