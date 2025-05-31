@@ -21,7 +21,13 @@ use App\Http\Controllers\BookmarkController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-
+Route::get('/mongo-test', function () {
+    return response()->json([
+        'class_exists' => class_exists('MongoDB\Driver\ReadPreference'),
+        'defined' => defined('MongoDB\Driver\ReadPreference::RP_PRIMARY'),
+        'value' => defined('MongoDB\Driver\ReadPreference::RP_PRIMARY') ? MongoDB\Driver\ReadPreference::RP_PRIMARY : null,
+    ]);
+});
 
 Route::get('', function () {
     try {
