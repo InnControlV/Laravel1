@@ -3,7 +3,6 @@
 @section('content')
 
 <link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
   .loader {
     display: none;
@@ -186,7 +185,7 @@
           <td>${item.category || ''}</td>
           <td>${item.title || ''}</td>
           <td>${item.tag || ''}</td>
-          <td>${item.image ? `<img src="public/news_images${item.image}" alt="news image" width="100">` : ''}</td>
+          <td>${item.image ? `<img src="storage/${item.image}" alt="news image" width="50">` : ''}</td>
           <td>${item.refer_from || ''}</td>
           <td>${item.language || ''}</td>
           <td>${item.location || ''}</td>

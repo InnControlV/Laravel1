@@ -325,105 +325,119 @@ public function create(Request $request)
     }
 
     public function show($id)
-{
-    $news = DB::connection('mongodb')->collection('news')->find($id);
+    {
+        $news = (object) DB::table('news')->find($id);
 
-    if (!$news) {
-        return response()->json(['error' => true, 'message' => 'News not found'], 404);
+        if (!$news) {
+            return response()->json([
+                'success' => false,
+                'message' => 'News not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $news->_id,
+                'title' => $news->title ?? '',
+                'category' => $news->category ?? '',
+                'description' => $news->description ?? '',
+                'image' => $news->image ? asset('storage/news_images/' . $news->image) : null,
+                'date' => optional($news->created_at)->format('Y-m-d'),
+                'time' => optional($news->created_at)->format('H:i:s'),
+                'location' => $news->location ?? '',
+                'language' => $news->language ?? '',
+                'refer_from' => $news->refer_from ?? '',
+                'url' => $news->url ?? '',
+                'favourite' => $news->favourite ?? false,
+            ]
+        ]);
     }
 
-    $news['id'] = (string) $news['_id'];
-    $news['created_at'] = $this->formatDate($news['created_at'] ?? null);
-    $news['updated_at'] = $this->formatDate($news['updated_at'] ?? null);
-    unset($news['_id']);
-
-    return response()->json(['error' => false, 'data' => $news]);
-}
-
-
-public function index1(Request $request)
-{
-    $user_id = $request->user_id;
-    $limit = $request->input('limit', 20);
-    $page = max(1, (int) $request->input('page', 1)); // Ensure page >= 1
-
-    $mongo = DB::connection('mongodb')->collection('news');
-
-    // ✅ Apply filters
-    if ($request->filled('language')) {
-        $mongo->where('language', $request->language);
+    public function index1(Request $request)
+    {
+        $user_id = $request->user_id;
+        $limit = (int) $request->input('limit', 20);
+        $lastId = $request->input('cursor'); // cursor is the last _id from previous page
+    
+        $mongo = DB::connection('mongodb')->collection('news');
+    
+        // ✅ Apply filters
+        if ($request->filled('language')) {
+            $mongo->where('language', $request->language);
+        }
+        if ($request->filled('location')) {
+            $mongo->where('location', $request->location);
+        }
+        if ($request->filled('category')) {
+            $mongo->where('category', $request->category);
+        }
+        if ($request->filled('referFrom')) {
+            $mongo->where('refer_from', $request->referFrom);
+        }
+    
+        // ▶️ Apply cursor if present
+        if ($lastId) {
+            $mongo->where('_id', '<', new \MongoDB\BSON\ObjectId($lastId));
+        }
+    
+        // 📥 Fetch results sorted by newest first
+        $newsList = $mongo->orderBy('_id', 'desc')->limit($limit)->get();
+    
+        $newsIds = $newsList->map(fn($item) => (string) $item['_id'])->all();
+    
+        $readProducts = DB::table('jarp_log')
+            ->where('user_id', $user_id)
+            ->whereIn('product_id', $newsIds)
+            ->pluck('product_id')
+            ->toArray();
+    
+        $bookmarkedProducts = DB::table('bookmarks')
+            ->where('user_id', $user_id)
+            ->whereIn('product_id', $newsIds)
+            ->pluck('product_id')
+            ->toArray();
+    
+        // 🔁 Format data
+        $newsData = $newsList->map(function ($item) use ($readProducts, $bookmarkedProducts) {
+            $id = (string) $item['_id'];
+    
+            return [
+                'category'       => $item['category'] ?? '',
+                'title'          => $item['title'] ?? '',
+                'image'          => $item['image'] ?? '',
+                'short_description' => $item['short_description'] ?? '',
+                'details'        => $item['details'] ?? '',
+                'language'       => $item['language'] ?? '',
+                'location'       => $item['location'] ?? '',
+                'created_at'     => $this->formatDate($item['created_at'] ?? null),
+                'tag'            => $item['tag'] ?? '',
+                'id'             => $id,
+                'read'           => in_array($id, $readProducts),
+                'bookmark'       => in_array($id, $bookmarkedProducts),
+                'metadata'       => [
+                    'author'    => $item['added_by'] ?? '',
+                    'source'    => $item['refer_from'] ?? '',
+                    'sourceURL' => $item['link'] ?? '',
+                    'createdAt' => $item['created_at'] ?? '',
+                ],
+            ];
+        });
+    
+        // ⏭️ Get next cursor
+        $nextCursor = null;
+        if (!$newsList->isEmpty()) {
+            $nextCursor = (string) $newsList->last()['_id'];
+        }
+    
+        return response()->json([
+            'error' => false,
+            'data' => $newsData,
+            'next_cursor' => $nextCursor,
+            'code' => 200,
+        ]);
     }
-    if ($request->filled('location')) {
-        $mongo->where('location', $request->location);
-    }
-    if ($request->filled('category')) {
-        $mongo->where('category', $request->category);
-    }
-    if ($request->filled('referFrom')) {
-        $mongo->where('refer_from', $request->referFrom);
-    }
-
-    // 🔢 Count before pagination
-    $totalCount = $mongo->count();
-
-    // 📄 Pagination
-    $skip = ($page - 1) * $limit;
-
-    // ⬇️ Fetch news list with pagination & sorting
-    $newsList = $mongo->orderBy('_id', 'desc')->skip($skip)->limit($limit)->get();
-
-    // 🔗 Join with SQL tables (bookmarks & read)
-    $newsIds = $newsList->map(fn($item) => (string) $item['_id'])->all();
-
-    $readProducts = DB::table('jarp_log')
-        ->where('user_id', $user_id)
-        ->whereIn('product_id', $newsIds)
-        ->pluck('product_id')
-        ->toArray();
-
-    $bookmarkedProducts = DB::table('bookmarks')
-        ->where('user_id', $user_id)
-        ->whereIn('product_id', $newsIds)
-        ->pluck('product_id')
-        ->toArray();
-
-    // 🛠 Format and enrich results
-    $newsData = $newsList->map(function ($item) use ($readProducts, $bookmarkedProducts) {
-        $id = (string) $item['_id'];
-
-        return [
-            'category'       => $item['category'] ?? '',
-            'title'          => $item['title'] ?? '',
-            'image'          => $item['image'] ?? '',
-            'short_description'    => $item['short_description'] ?? '',
-            'details'    => $item['details'] ?? '',
-            'language'       => $item['language'] ?? '',
-            'location'       => $item['location'] ?? '',
-            'created_at'     => $this->formatDate($item['created_at'] ?? null),
-            'tag'            => $item['tag'] ?? '',
-            'id'             => $id,
-            'read'           => in_array($id, $readProducts),
-            'bookmark'       => in_array($id, $bookmarkedProducts),
-            'metadata'       => [
-                'author'    => $item['added_by'] ?? '',
-                'source'    => $item['refer_from'] ?? '',
-                'sourceURL' => $item['link'] ?? '',
-                'createdAt' => $item['created_at'] ?? '',
-            ],
-        ];
-    });
-
-    $totalPages = ceil($totalCount / $limit);
-
-    return response()->json([
-        'error' => false,
-        'data' => $newsData,
-        'total_count' => $totalCount,
-        'current_page' => $page,
-        'total_pages' => $totalPages,
-        'code' => 200
-    ]);
-}
+    
 
 
 public function apinewsStore(Request $request)

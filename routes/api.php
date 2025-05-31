@@ -52,6 +52,7 @@ Route::get('/news-list-mobile', [NewsController::class, 'index1']);
 Route::get('/news-list', [NewsController::class, 'index']);
 Route::get('/news-delete/{id}', [NewsController::class, 'destroy']);
 Route::post('/news-update/{id}', [NewsController::class, 'apinewsUpdate']);
+Route::get('/news-details/{id}', [NewsController::class, 'show']);
 
 
 
