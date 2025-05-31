@@ -1,37 +1,29 @@
-FROM php:8.2-apache
+FROM phpswoole/swoole:php8.2
 
-# Environment setup
-ENV COMPOSER_MEMORY_LIMIT=-1 \
-    DEBIAN_FRONTEND=noninteractive
+# Apache and other system deps
+RUN apt update && apt install -y apache2 libapache2-mod-php8.2 && \
+    apt install -y unzip zip libzip-dev libpng-dev libonig-dev libxml2-dev git curl
 
-# Install system packages
-RUN apt-get update && apt-get install -y \
-    git unzip curl zip libzip-dev libpng-dev libonig-dev libxml2-dev \
-    libssl-dev pkg-config && \
-    docker-php-ext-install pdo pdo_mysql mbstring bcmath zip
+# Enable PHP extensions
+RUN docker-php-ext-install pdo pdo_mysql mbstring bcmath zip
 
-# ✅ Install MongoDB PHP extension (cleanly and fully)
-RUN rm -rf /tmp/pear ~/.pearrc && \
-    pecl install mongodb && \
-    echo "extension=mongodb.so" > /usr/local/etc/php/conf.d/mongodb.ini
+# ✅ MONGODB EXTENSION ALREADY INSTALLED in this image
 
-# Enable Apache rewrite module
+# Enable apache rewrite
 RUN a2enmod rewrite
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory
+# Working directory
 WORKDIR /var/www/html
 
-# Copy project files
 COPY . .
 
-# Install Laravel dependencies
 RUN COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --no-scripts --ignore-platform-reqs || (echo "Composer install failed" && cat /tmp/composer.log || true)
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
-    chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chown -R www-data:www-data storage bootstrap/cache && \
+    chmod -R 755 storage bootstrap/cache
 
 EXPOSE 80
+CMD ["apache2ctl", "-D", "FOREGROUND"]
