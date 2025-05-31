@@ -36,19 +36,33 @@ class BookmarkController extends Controller
                 'updated_at' => now()
             ];
     
-            $query =  DB::table('bookmarks');
-            $bookmark = $query->where('product_id', $request->product_id)
-                ->where('product_type', $request->product_type)
-                ->where('user_id', $request->user_id)
-                ->first();
-
-               
+            try {
+                $query = DB::table('bookmarks');
+                $bookmark = $query->where('product_id', $request->product_id)
+                    ->where('product_type', $request->product_type)
+                    ->where('user_id', $request->user_id)
+                    ->first();
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => true,
+                    'message' => 'Failed to fetch bookmark: ' . $e->getMessage(),
+                    'code' => 500
+                ], 500);
+            }
+    
             if ($bookmark) {
-                $id = (string) $bookmark['_id'];
-                // Note: Replace _id with your actual primary key if it's not MongoDB
-                DB::table('bookmarks')
-                    ->where('_id', $id) // or '_id' if using Mongo
-                    ->delete();
+                try {
+                    $id = (string) $bookmark->_id;  // If _id is an object, cast to string properly
+                    DB::table('bookmarks')
+                        ->where('_id', $id)
+                        ->delete();
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'error' => true,
+                        'message' => 'Failed to delete bookmark: ' . $e->getMessage(),
+                        'code' => 500
+                    ], 500);
+                }
     
                 return response()->json([
                     'error' => false,
@@ -57,19 +71,22 @@ class BookmarkController extends Controller
                 ], 200);
             }
     
-            DB::table('bookmarks')->insert($data);
+            try {
+                DB::table('bookmarks')->insert($data);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => true,
+                    'message' => 'Failed to add bookmark: ' . $e->getMessage(),
+                    'code' => 500
+                ], 500);
+            }
     
             return response()->json([
                 'error' => false,
                 'message' => 'Bookmark added successfully.',
                 'code' => 201
             ], 201);
-        } catch (\Illuminate\Database\QueryException $e) {
-            return response()->json([
-                'error' => true,
-                'message' => 'Database error: ' . $e->getMessage(),
-                'code' => 500
-            ], 500);
+    
         } catch (\Exception $e) {
             return response()->json([
                 'error' => true,
@@ -78,6 +95,7 @@ class BookmarkController extends Controller
             ], 500);
         }
     }
+    
     
 
     // Delete a bookmark
