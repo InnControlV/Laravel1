@@ -45,7 +45,7 @@ class BookmarkController extends Controller
             if ($bookmark) {
                 // Note: Replace _id with your actual primary key if it's not MongoDB
                 DB::table('bookmarks')
-                    ->where('id', $bookmark->id) // or '_id' if using Mongo
+                    ->where('_id', $bookmark->id) // or '_id' if using Mongo
                     ->delete();
     
                 return response()->json([
