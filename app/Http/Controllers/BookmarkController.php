@@ -14,6 +14,11 @@ class BookmarkController extends Controller
     public function create(Request $request)
     {
 
+        return response()->json([
+            'defined' => defined('MongoDB\\Driver\\ReadPreference::RP_PRIMARY'),
+            'class_exists' => class_exists('MongoDB\\Driver\\ReadPreference'),
+        ]);
+
         try {
             $readPreference = ReadPreference::RP_PRIMARY;
     
@@ -32,7 +37,7 @@ class BookmarkController extends Controller
                 'code' => 500
             ]);
         }
-        
+
         try {
             // ✅ Validation
             $validator = Validator::make($request->all(), [
