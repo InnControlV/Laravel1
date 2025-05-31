@@ -42,8 +42,9 @@ class BookmarkController extends Controller
                 ->where('user_id', $request->user_id)
                 ->first();
 
-                $id = (string) $bookmark['_id'];
+               
             if ($bookmark) {
+                $id = (string) $bookmark['_id'];
                 // Note: Replace _id with your actual primary key if it's not MongoDB
                 DB::table('bookmarks')
                     ->where('_id', $id) // or '_id' if using Mongo
