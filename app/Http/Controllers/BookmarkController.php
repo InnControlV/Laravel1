@@ -6,12 +6,33 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use MongoDB\Driver\ReadPreference;
 
 class BookmarkController extends Controller
 {
     // Create a new bookmark
     public function create(Request $request)
     {
+
+        try {
+            $readPreference = ReadPreference::RP_PRIMARY;
+    
+            // Use this read preference in a MongoDB driver Manager or query, if needed
+            // ...
+            
+            return response()->json([
+                'error' => false,
+                'message' => 'ReadPreference constant used successfully',
+                'code' => 200
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => true,
+                'message' => 'Error: ' . $e->getMessage(),
+                'code' => 500
+            ]);
+        }
+        
         try {
             // ✅ Validation
             $validator = Validator::make($request->all(), [

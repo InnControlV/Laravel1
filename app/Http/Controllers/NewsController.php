@@ -359,8 +359,10 @@ public function create(Request $request)
                 'title' => $news->title ?? '',
                 'category' => $news->category ?? '',
                 'description' => $news->shortDescription ?? '',
-                'image' => $news->image ? asset('storage/' . $news->image) : null,
-                'date' => $news->date ?? null,
+                'image' => isset($item['image']) 
+                ? "https://laravel1-kcmv.onrender.com/storage/app/public/" . $item['image'] : '',
+                    'short_description' => $item['short_description'] ?? '',
+                 'date' => $news->date ?? null,
                 'time' => $news->time ?? null,
                 'tag' => $news->tag ?? '',
                 'location' => $news->location ?? '',
