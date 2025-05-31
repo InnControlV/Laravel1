@@ -11,8 +11,9 @@ RUN apt-get update && apt-get install -y \
     docker-php-ext-install pdo pdo_mysql mbstring bcmath zip
 
 # Install MongoDB PHP extension
-RUN pecl install mongodb && echo "extension=mongodb.so" > /usr/local/etc/php/conf.d/mongodb.ini
-
+RUN rm -rf /tmp/pear ~/.pearrc && \
+    pecl install mongodb && \
+    echo "extension=mongodb.so" > /usr/local/etc/php/conf.d/mongodb.ini
 # Enable Apache rewrite module
 RUN a2enmod rewrite
 
